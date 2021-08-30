@@ -1,0 +1,1727 @@
+#################################################################################
+# 
+# SCRIPT TO RUN EWAS AIR POLLUTION IN INMA PLACENTA 450K
+# 
+################################################################################
+#set workong directory
+setwd("---")
+#Load packages
+
+library(readr)
+library(RefFreeEWAS)
+
+## For Categorical Splitting
+library(Hmisc)
+
+## For RLM Linear models:
+library(data.table)	# to process results
+library(MASS) 		# rlm function for robust linear regression
+library(sandwich) 	# Huberís estimation of the standard error
+library(lmtest) 		# to use coeftest
+library(parallel)
+library(haven) #To load .dta data
+library(qqman) # to print qq plot
+library(R.utils) # To zip files
+library(limma) #venn diagrams
+library(table1) #Descriptive statistics
+library(htmltools) #save html
+#################################################################################
+# load air polution data  and pd (methilation) data
+
+#Air polution data
+ap<- read_dta("---")
+
+### Methylation data
+load("---")
+pd<-pd2
+pd2<-NULL
+
+#### Check the dimentions of the data
+dim(as.data.frame(pd))               # 389  56
+dim(as.data.frame(annot))            # 865859     46
+dim(fnbetas.adj)      # 796653    389
+
+#################################################################################
+# Step 0: subselect variables of interest
+
+selection<-c(1,2,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,23,24,25,26,27,28,29,30,31,32,35,36,34,38,45)
+ap_sub<-ap[,selection]
+
+#################################################################################
+# Step 1: create a variable cohort.x 
+
+# Generate a variable cohort.x from ap_sub$cohorte using eht following key:
+#
+# 1 = Asturies , 2 = Guipuzcoa , 3 = Sabadell , 4 = Valencia
+#
+ap_sub$cohort.fin<-factor(ap_sub$cohorte, labels = c("Asturies","Gipuzkoa","Sabadell","Valencia"))
+
+#Compare the column cohorte and cohort.x to ensure the samples per cohort are correct after the rename
+table(ap_sub$cohorte)
+#  1   2   3   4 
+# 494 638 657 855
+table(ap_sub$cohort.fin)
+# Asturies Guipuzcoa  Sabadell  Valencia 
+# 494       638       657       855
+
+#################################################################################
+# Step 2: link pd with air pollution (using cohort.x + idnum) and save it as PHENO
+
+# Create a variable using cohort.x and idnum together to identify the samples in both dataframes
+ap_sub$mergingcolumn<-paste(ap_sub$cohort.fin, ap_sub$idnum)
+
+pd$mergingcolumn <- paste( pd$Cohort_name, pd$idnum )
+
+
+# Merge the datasets pd and ap_sub by the new column selecting only the 
+# samples present in both datasets
+
+PHENO<-merge(x = as.data.frame(pd), y = as.data.frame(ap_sub), by="mergingcolumn")
+
+dim(ap_sub) # 2644 23
+dim(pd)     #  168 54   The Samples appearing in boht datasets are 231 
+dim(PHENO)  #  168 86  
+
+PHENO.OG<-PHENO
+
+for (i in c(7,45,29,88,91,52,87)){ #80,87,88,91,29,91,90,82,85,86,78
+  PHENO[,i]<-as.factor(PHENO[,i])
+}
+
+## SUBSETING THE SAMPLES WITH ALL THE INFORMATION ABOUT THE COVARIATES NEEDED IN THE MODELS
+
+
+### No2 subset
+pheno.no2<-PHENO[,c(2,7,72:76,26,45, 87, 29, 88, 89, 91,52)]
+dim(pheno.no2)
+pheno.no2f<-pheno.no2[complete.cases(pheno.no2[,c(1:3,8:15)]),]
+dim(pheno.no2f)#349
+
+### PM10
+pheno.pm10<-PHENO[,c(2,7,72:76,26,45, 87, 29, 88, 89, 91,52)]
+dim(pheno.pm10)
+pheno.pm10f<-pheno.pm10[complete.cases(pheno.pm10[,c(1:2,4,8:15)]),]
+dim(pheno.pm10f)#129
+### PM2.5
+pheno.pm25<-PHENO[,c(2,7,72:76,26,45, 87, 29, 88, 89, 91,52)]
+dim(pheno.pm25)
+pheno.pm25f<-pheno.pm25[complete.cases(pheno.pm25[,c(1:2,5,8:15)]),]
+dim(pheno.pm25f)#350
+
+### ABS
+pheno.abs<-PHENO[,c(2,7,72:76,26,45, 87, 29, 88, 89, 91,52)]
+dim(pheno.abs)
+pheno.absf<-pheno.abs[complete.cases(pheno.abs[,c(1:2,6,8:15)]),]
+dim(pheno.absf)#129
+### PB
+pheno.pb<-PHENO[,c(2,7,72:76,26,45, 87, 29, 88, 89, 91,52)]
+dim(pheno.pb)
+pheno.pbf<-pheno.pb[complete.cases(pheno.pb[,c(1:2,7:15)]),]
+dim(pheno.pbf)#70
+
+### NOTE check if IDs in models are in in PM25 (max N) 
+table(pheno.absf$Basename%in%pheno.pm25f$Basename)#TRUE
+table(pheno.pm10f$Basename%in%pheno.pm25f$Basename)#TRUE
+table(pheno.no2f$Basename%in%pheno.pm25f$Basename)#TRUE
+table(pheno.pbf$Basename%in%pheno.pm25f$Basename)#TRUE
+#
+
+dim(PHENO.OG)     # 168  86
+dim(pheno.pm25f)    # 350  86
+
+
+PHENO<-pheno.pm25f
+PHENODESc<-PHENO.OG[rownames(PHENO),]
+#################################################################################
+#Step 3 : Descriptive analysis of the data
+
+for (i in c(80,87,88,91,29,91,90,82,85,86,78)){
+  PHENODESc[,i]<-as.factor(PHENODESc[,i])
+}
+
+
+PHENODESc$magecat<-NULL
+magecat<-NULL
+for ( i in as.vector(PHENODESc$mage)){
+  if (is.na(i)){
+    magecat<-c(magecat,"NA")
+  } else if (i < 25){
+    magecat<-c(magecat,0)
+  } else if ( i>=25 & i<=30){
+    magecat<-c(magecat,1)
+  }else{
+    magecat<-c(magecat,2)
+  }
+} 
+PHENODESc$magecat<-magecat
+PHENODESc$Socioeconomic_ISVUR<- PHENODESc[,89]
+tt<-table1(~ e3_no2_ratio_preg + e3_pm10_ratio_preg + e3_pm25_ratio_preg + e3_abs_ratio_preg + pb_exposure + mage + sexo + parity + smok +  conseason + estudios3c.x + Socioeconomic_ISVUR + bs_ga_i + bweight + ga + preterm.y + cesarean + magecat + CSM2 + imcm + imcm4c + ethnic_origin_2c | cohort.fin, data=PHENODESc, overall="Total",  render.continuous=c(.="Mean (SD)", .="Median [Min, Max]", "IQR (Q1 -Q3)"="IQR (Q1 - Q3)"))
+save_html(tt, "EpicDescriptives.html", background = "white", libdir = "lib", lang = "en")
+
+#################################################################################
+#####  Descriptive analysis by cohort
+
+
+#Pollutants missing information
+
+polnavec<-as.data.frame(matrix(ncol=0,nrow = 350))
+for( i in c(3:7)){
+  PHENO[,i][as.vector(PHENO[,i]) == ""] = NA
+  polnavec$new<-as.numeric(!is.na(PHENO[,i]))
+  names(polnavec)[names(polnavec)=="new"] <- colnames(PHENO[i])
+}
+
+colSums(polnavec)
+
+#### Venn diagram per expos
+
+for (cohort in unique(PHENO$cohort.x)){
+  a <- vennCounts(!apply(PHENO[PHENO$cohort.x==cohort,69:73]),2,is.na)
+  vennDiagram(a);title(cohort)
+}
+maxlen<-length(colnames(polnavec))
+Venndata<-NULL
+
+for (i in c(1,2,3,4,5)){
+  if(i<5){
+    rg<-(i+1):5
+    for (j in rg){
+      print(paste(colnames(polnavec)[i],"_",colnames(polnavec)[j]))
+      N<-length(which(polnavec[,i]==1 & polnavec[,j]==1))
+      print(N)
+      Venndata<-c(Venndata, c(colnames(polnavec),N))
+  }
+  }
+}
+png("Venndiagram_Exposition_EPIC.png")
+vennDiagram(vennCounts(polnavec),circle.col=c("red","green","blue","yellow","purple"))
+dev.off()    
+
+#################################################################################
+# Step 4:  read omegas
+
+omegas<-read.delim("/home/isglobal.lan/jaumatell/data/WS_INMA/Methylation_INMA/EPIC_placenta/QC_Todd/Final_files/INMA_Pla_EPIC_Slide_Omega.s.txt", header = TRUE, sep = "\t")
+omegas.OG<-omegas
+fnbetas.adj.OG<-fnbetas.adj
+#################################################################################
+# Step 5: order IDs in PHENO, omegas and methylation data
+
+PHENO<-pheno.no2f
+
+### REMOVE THE INDIVIDUALS WITH MISSING INFORMATION 
+fnbetas.adj<-fnbetas.adj.OG[,(colnames(fnbetas.adj.OG)  %in% PHENO$Basename)]
+omegas<-omegas.OG[(rownames(omegas.OG)  %in% PHENO$Basename),]
+
+#########omegas
+
+#Check the order to be the same between Methilation data and pheno data
+identical(colnames(fnbetas.adj), as.character(PHENO$Basename)) ##FALSE
+
+#To Correct the order of the phenotipic data identical(colnames(fnbetas.adj), gsub("/home/isglobal.lan/mbustamante/data/WS_INMA/Methylation_INMA/PACE/Placentomics/raw_data/idat_files/","",PHENO$Basename)) ##FALSE
+PHENO <- PHENO[match(colnames(fnbetas.adj),as.vector(PHENO$Basename)), ] 
+
+#Check the order to be the same between Methilation data and pheno data
+identical(colnames(fnbetas.adj), as.character(PHENO$Basename)) ##TRUE
+
+#Check the order to be the same in the id's of Methilation data and omegas 
+identical(colnames(fnbetas.adj), rownames(omegas)) ###True
+
+
+# Check the dimention of the N to be consistent between the datasets
+dim(omegas)      #      154   3      -> Samples in Rows    
+dim(fnbetas.adj) #   478434   154    -> Samples in Columns 
+dim(PHENO)       #      154   86     -> Samples in Rows    
+
+# The Size of N match between the datasets and is in the same order. 
+
+
+#################################################################################
+# Step 5: do trimming of methylation data  #Modifyed from the script nº 4
+
+#### Trimming methylation beta values to remove potential outliers
+
+# Trimming scheme is as follows – trim values beyond the lower and upper outer #fences. These are defined by:
+# Values < 25th percentile minus 3*IQRANDValues > 75th percentile plus 3*IQR
+# (IQR = interquartile range)
+# The following code was provided by Gemma Sharp on June 12, 2105 – #modification (to run faster) of code provided earlier by Janine Felix.  Input #also from Allan Just. 
+
+#Function
+
+removeOutliers<-function(probes){
+  require(matrixStats)
+  if(nrow(probes) <ncol(probes)) warning("expecting probes are rows (long dataset)")
+  rowIQR<- rowIQRs(probes, na.rm = T)
+  row2575 <- rowQuantiles(probes, probs = c(0.25, 0.75), na.rm = T)
+  maskL<- probes < row2575[,1] - 3 * rowIQR 
+  maskU<- probes > row2575[,2] + 3 * rowIQR 
+  initial_NAs<-rowSums(is.na(probes))
+  probes[maskL] <- NA
+  removed_lower<- rowSums(is.na(probes))-initial_NAs
+  probes[maskU] <- NA
+  removed_upper<- rowSums(is.na(probes))-removed_lower-initial_NAs
+  N_for_probe<-rowSums(!is.na(probes))
+  Log<-data.frame(initial_NAs,removed_lower,removed_upper,N_for_probe)
+  return(list(probes, Log))
+}
+
+#Remove outliers from METH (methylation data where probes are rows and samples are columns)
+
+system.time(OutlierResults<-removeOutliers(fnbetas.adj)) 
+fnbetas.adj2<-OutlierResults[[1]]
+dim(fnbetas.adj2)
+Log<-OutlierResults[[2]]
+#save(Log,file="PACE_INMA_Outlier_log.Rdata") #save log
+
+#transpose betas so that rows are samples and columns are probes
+beta_matrix = t(fnbetas.adj2)
+
+# omegas
+# Ensure CellMix matrix matches methylation beta-value matrix and other phenotype data
+table(ifelse(rownames(omegas)==PHENO$Basename,"MATCHED","Not Matched"))
+#MATCHED 168
+table(ifelse(rownames(omegas)==rownames(beta_matrix),"MATCHED","Not Matched"))
+#MATCHED 168 
+
+
+#################################################################################
+# Step 6: EWAS 
+### modifyed fromStandard code from PACE
+
+#################################################################################
+## A MODELS 1 and 2 (NO2)
+
+#################################################################################
+#Model A1
+#Methylation = pregnancy NO2 levels + maternal age + child sex + parity + 
+#maternal education + maternal smoking during pregnancy + neighborhood SES + 
+#season of conception + ancestry (+ selection)
+
+
+#### Modeling with covariate adjustment
+
+#Model A1.   ######### ANCESTRY?
+
+#Add function for running the model 
+RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X5, X6, X7, X8, X9) {
+  mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+X8+X9,maxit=200))
+  if(class(mod) == "try-error"){
+    print(paste("error thrown by column", methcol))
+    invisible(rep(NA, 3))
+  }else cf = coeftest(mod, vcov=vcovHC(mod, type="HC0"))
+  cf[2, c("Estimate", "Std. Error", "Pr(>|z|)")]
+}
+
+#Run adjusted MWAS
+
+# Variables in the model
+
+system.time(ind.resA1 <- mclapply(setNames(seq_len(ncol(beta_matrix)), dimnames(beta_matrix)[[2]]), RLMtest, meth_matrix=beta_matrix, 
+                                 exposure=PHENO[,3] # EXPOSURE (No2 during all pregnancy)  
+                                 , X1=PHENO[,8]	# Maternal age 
+                                 , X2=PHENO[,9]	# Child sex
+                                 , X3=PHENO[,10]	# Parity 
+                                 , X4=PHENO[,11]	# Maternal education
+                                 , X5=PHENO[,12]	# Maternal smoking during pregnancy
+                                 , X6=PHENO[,13]	# Neighborhood SES
+                                 , X7=PHENO[,14]	# Season of conception
+                                 , X8=PHENO[,15]	# Ethnicity  
+                                 , X9=PHENO[,2]	  #  Cohort
+                                 
+))
+Sys.time()
+
+
+#Process covariate adjusted results
+setattr(ind.resA1, 'class', 'data.frame')
+setattr(ind.resA1, "row.names", c(NA_integer_,4))
+setattr(ind.resA1, "names", make.names(names(ind.resA1), unique=TRUE))
+probelistnamesA1 = names(ind.resA1)
+all.resultsA1 = t(data.table(ind.resA1))
+all.resultsA1 = data.table(all.resultsA1)
+all.resultsA1[, probeID := probelistnamesA1]
+setnames(all.resultsA1, c("BETA","SE", "P_VAL", "probeID")) # rename columns
+setcolorder(all.resultsA1, c("probeID","BETA","SE", "P_VAL"))
+#rm(probelistnamesA1, ind.resA1)
+
+#Lambda calculation
+lambdaA1 = qchisq(median(all.resultsA1$P_VAL,na.rm=T), df = 1, lower.tail = F)/
+  qchisq(0.5, 1)
+## Save analysis sample sizes & lambda:
+NA1 = nrow(beta_matrix) #make sure that this is the sample size of the analysis (no missings in covariates)
+
+#Q-Q plots
+
+pdf("PACE_EPIC_ModelA1_QQ_Plot_30-08f.pdf")
+qq(all.resultsA1$P_VAL,main="PACE_EPIC_QQ-plot")
+dev.off()
+
+# export table of results
+write.table(all.resultsA1, "PACE_EPIC_ModelA1_30-08f.txt",na="NA")
+gzip("PACE_EPIC_ModelA1_30-08f.txt")
+
+#################################################################################
+#Model A2
+
+# Methylation = pregnancy NO2 levels + maternal age + child sex + parity + 
+# maternal education + maternal smoking during pregnancy + neighborhood SES + 
+# season of conception + ancestry + Houseman free reference estimations (+ selection) 
+
+
+#### Modeling with covariate adjustment
+
+#Model A2. ## repeat to check smoking as new model
+
+#Add function for running the model 
+RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X5, X6, X7, X8, X9, cell1, cell2, cell3, cell4, cell5, cell6, cell7) {
+  mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+X8+X9+cell1+cell2+cell3+cell4+cell5+cell6+cell7,maxit=200))
+  if(class(mod) == "try-error"){
+    print(paste("error thrown by column", methcol))
+    invisible(rep(NA, 3))
+  }else cf = coeftest(mod, vcov=vcovHC(mod, type="HC0"))
+  cf[2, c("Estimate", "Std. Error", "Pr(>|z|)")]
+}
+
+#Run adjusted MWAS
+
+# Variables in the model 
+
+system.time(ind.resA2 <- mclapply(setNames(seq_len(ncol(beta_matrix)), dimnames(beta_matrix)[[2]]), RLMtest, meth_matrix=beta_matrix, 
+                                  exposure=PHENO[,3] # EXPOSURE (No2 during all pregnancy)  
+                                  , X1=PHENO[,8]	# Maternal age 
+                                  , X2=PHENO[,9]	# Child sex
+                                  , X3=PHENO[,10]	# Parity 
+                                  , X4=PHENO[,11]	# Maternal education
+                                  , X5=PHENO[,12]	# Maternal smoking during pregnancy
+                                  , X6=PHENO[,13]	# Neighborhood SES
+                                  , X7=PHENO[,14]	# Season of conception
+                                  , X8=PHENO[,15]	# ancestry  
+                                  , X9=PHENO[,2]	#  Cohort
+                                  , cell1 = omegas[,1]
+                                  , cell2 = omegas[,2]
+                                  , cell3 = omegas[,3]
+                                  , cell4 = omegas[,4]
+                                  , cell5 = omegas[,5]
+                                  , cell6 = omegas[,6]
+                                  , cell7 = omegas[,7]
+))
+Sys.time()
+
+
+#Process covariate adjusted results
+setattr(ind.resA2, 'class', 'data.frame')
+setattr(ind.resA2, "row.names", c(NA_integer_,4))
+setattr(ind.resA2, "names", make.names(names(ind.resA2), unique=TRUE))
+probelistnamesA2 = names(ind.resA2)
+all.resultsA2 = t(data.table(ind.resA2))
+all.resultsA2 = data.table(all.resultsA2)
+all.resultsA2[, probeID := probelistnamesA2]
+setnames(all.resultsA2, c("BETA","SE", "P_VAL", "probeID")) # rename columns
+setcolorder(all.resultsA2, c("probeID","BETA","SE", "P_VAL"))
+rm(probelistnamesA2, ind.resA2)
+
+#Lambda calculation
+lambdaA2 = qchisq(median(all.resultsA2$P_VAL,na.rm=T), df = 1, lower.tail = F)/
+  qchisq(0.5, 1)
+## Save analysis sample sizes & lambda:
+NA2 = nrow(beta_matrix) #make sure that this is the sample size of the analysis (no missings in covariates)
+
+#Q-Q plots
+
+pdf("PACE_EPIC_ModelA2_QQ_Plot_30-08f.pdf")
+qq(all.resultsA2$P_VAL,main="PACE_EPIC_QQ-plot")
+dev.off()
+
+# export table of results
+write.table(all.resultsA2, "PACE_EPIC_ModelA2_30-08f.txt",na="NA")
+gzip("PACE_EPIC_ModelA2_15-30f.txt")
+
+#################################################################################
+## B MODELS 1 and 2 (PM2.5)
+
+################################################################################
+PHENO<-pheno.pm25f
+
+### REMOVE THE INDIVIDUALS WITH MISSING INFORMATION 
+
+fnbetas.adj<-fnbetas.adj.OG[,(colnames(fnbetas.adj.OG)  %in% PHENO$Basename)]
+omegas<-omegas.OG[(rownames(omegas.OG)  %in% PHENO$Basename),]
+
+#########omegas
+
+#Check the order to be the same between Methilation data and pheno data
+identical(colnames(fnbetas.adj), as.character(PHENO$Basename)) ##FALSE
+
+#To Correct the order of the phenotipic data identical(colnames(fnbetas.adj), gsub("/home/isglobal.lan/mbustamante/data/WS_INMA/Methylation_INMA/PACE/Placentomics/raw_data/idat_files/","",PHENO$Basename)) ##FALSE
+PHENO <- PHENO[match(colnames(fnbetas.adj),as.vector(PHENO$Basename)), ] 
+
+#Check the order to be the same between Methilation data and pheno data
+identical(colnames(fnbetas.adj), as.character(PHENO$Basename)) ##TRUE
+
+#Check the order to be the same in the id's of Methilation data and omegas 
+identical(colnames(fnbetas.adj), rownames(omegas)) ###True
+
+# Check the dimention of the N to be consistent between the datasets
+dim(omegas)      #      154   3      -> Samples in Rows    
+dim(fnbetas.adj) #   478434   154    -> Samples in Columns 
+dim(PHENO)       #      154   86     -> Samples in Rows    
+
+# The Size of N match between the datasets and is in the same order. 
+
+#Remove outliers from METH (methylation data where probes are rows and samples are columns)
+
+system.time(OutlierResults<-removeOutliers(fnbetas.adj)) 
+fnbetas.adj2<-OutlierResults[[1]]
+dim(fnbetas.adj2)
+Log<-OutlierResults[[2]]
+#save(Log,file="PACE_INMA_Outlier_log.Rdata") #save log
+
+#transpose betas so that rows are samples and columns are probes
+beta_matrix = t(fnbetas.adj2)
+
+
+# omegas
+# Ensure CellMix matrix matches methylation beta-value matrix and other phenotype data
+table(ifelse(rownames(omegas)==PHENO$Basename,"MATCHED","Not Matched"))
+#MATCHED 168
+table(ifelse(rownames(omegas)==rownames(beta_matrix),"MATCHED","Not Matched"))
+#MATCHED 168 
+
+#################################################################################
+#Model B1 
+#Methylation = pregnancy PM2.5 levels + child sex + parity + maternal education +
+# maternal smoking during pregnancy + neighborhood SES + season of conception + ancestry (+ selection)
+
+#### Modeling with covariate and cell-mix adjustment
+
+#Add function for running the model 
+
+RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3,X4,X5,X6,X7,X8,X9) {
+  mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+X8+X9,maxit=200))
+  if(class(mod) == "try-error"){
+    print(paste("error thrown by column", methcol))
+    invisible(rep(NA, 3))
+  }else 
+    cf = coeftest(mod, vcov=vcovHC(mod, type="HC0"))
+  cf[2, c("Estimate", "Std. Error", "Pr(>|z|)")]
+}
+
+
+#Run adjusted MWAS
+
+# Variables in the model
+
+system.time(ind.resB1 <- mclapply(setNames(seq_len(ncol(beta_matrix)), dimnames(beta_matrix)[[2]]), RLMtest, meth_matrix=beta_matrix, 
+                                 exposure=PHENO[,5] # EXPOSURE   P2.5
+                                 , X1=PHENO[,8]	# Maternal age 
+                                 , X2=PHENO[,9]	# Child sex
+                                 , X3=PHENO[,10]	# Parity 
+                                 , X4=PHENO[,11]	# Maternal education
+                                 , X5=PHENO[,12]	# Maternal smoking during pregnancy
+                                 , X6=PHENO[,13]	# Neighborhood SES
+                                 , X7=PHENO[,14]	# Season of conception
+                                 , X8=PHENO[,15]	# ancestry  
+                                 , X9=PHENO[,2]	#  Cohort
+))
+Sys.time()
+
+
+
+#Process covariate and reffree adjsuted results
+setattr(ind.resB1, 'class', 'data.frame')
+setattr(ind.resB1, "row.names", c(NA_integer_,4))
+setattr(ind.resB1, "names", make.names(names(ind.resB1), unique=TRUE))
+probelistnamesB1 = names(ind.resB1)
+all.resultsB1 = t(data.table(ind.resB1))
+all.resultsB1 = data.table(all.resultsB1)
+all.resultsB1[, probeID := probelistnamesB1]
+setnames(all.resultsB1, c("BETA","SE", "P_VAL", "probeID")) # rename columns
+setcolorder(all.resultsB1, c("probeID","BETA","SE", "P_VAL"))
+rm(probelistnamesB1, ind.resB1)
+
+#Lambda calculation
+lambdaB1 = qchisq(median(all.resultsB1$P_VAL,na.rm=T), df = 1, lower.tail = F)/
+  qchisq(0.5, 1)
+## Save analysis sample sizes & lambda:
+NB1 = nrow(beta_matrix) #make sure that this is the sample size of the analysis (no missings in covariates)
+
+#Q-Q plots
+pdf("PACE_EPIC_ModelB1_QQ_Plot_15-08f.pdf")
+qq(all.resultsB1$P_VAL,main="PACE_EPIC_QQ-plot")
+dev.off()
+
+# export table of results
+write.table(all.resultsB1, "PACE_EPIC_ModelB1_15-08f.txt",na="NA")
+gzip("PACE_EPIC_ModelB1_15-08f.txt")
+
+#################################################################################
+#Model B2 
+#Methylation = pregnancy PM2.5 levels + child sex + parity + maternal education +
+# maternal smoking during pregnancy + neighborhood SES + season of conception + ancestry (+ selection)
+
+#### Modeling with covariate and cell-mix adjustment
+
+#Add function for running the model 
+RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3,X4,X5,X6,X7,X8,X9,cell1, cell2, cell3, cell4, cell5, cell6, cell7) {
+  mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+X9+cell1+cell2+cell3+cell4+cell5+cell6+cell7,maxit=200))
+  if(class(mod) == "try-error"){
+    print(paste("error thrown by column", methcol))
+    invisible(rep(NA, 3))
+  }else 
+    cf = coeftest(mod, vcov=vcovHC(mod, type="HC0"))
+  cf[2, c("Estimate", "Std. Error", "Pr(>|z|)")]
+}
+
+#Run adjusted MWAS
+
+# Variables in the model 
+system.time(ind.resB2 <- mclapply(setNames(seq_len(ncol(beta_matrix)), dimnames(beta_matrix)[[2]]), RLMtest, meth_matrix=beta_matrix, 
+                                  exposure=PHENO[,5] # EXPOSURE   
+                                  , X1=PHENO[,8]	# child sex
+                                  , X2=PHENO[,9]	# child sex
+                                  , X3=PHENO[,10]	# Parity 
+                                  , X4=PHENO[,11]	# Maternal education 
+                                  , X5=PHENO[,12]	# Maternal smoking during pregnancy
+                                  , X6=PHENO[,13]	# neighbourhood SES 
+                                  , X7=PHENO[,14]	# Season of conception
+                                  , X8=PHENO[,15]	# ancestry  
+                                  , X9=PHENO[,2]	#  Cohort  
+                                  , cell1 = omegas[,1]
+                                  , cell2 = omegas[,2]
+                                  , cell3 = omegas[,3]
+                                  , cell4 = omegas[,4]
+                                  , cell5 = omegas[,5]
+                                  , cell6 = omegas[,6]
+                                  , cell7 = omegas[,7]
+))
+Sys.time()
+
+#Process covariate and reffree adjsuted results
+setattr(ind.resB2, 'class', 'data.frame')
+setattr(ind.resB2, "row.names", c(NA_integer_,4))
+setattr(ind.resB2, "names", make.names(names(ind.resB2), unique=TRUE))
+probelistnamesB2 = names(ind.resB2)
+all.resultsB2 = t(data.table(ind.resB2))
+all.resultsB2 = data.table(all.resultsB2)
+all.resultsB2[, probeID := probelistnamesB2]
+setnames(all.resultsB2, c("BETA","SE", "P_VAL", "probeID")) # rename columns
+setcolorder(all.resultsB2, c("probeID","BETA","SE", "P_VAL"))
+rm(probelistnamesB2, ind.resB2)
+
+#Lambda calculation
+lambdaB2 = qchisq(median(all.resultsB2$P_VAL,na.rm=T), df = 1, lower.tail = F)/
+  qchisq(0.5, 1)
+## Save analysis sample sizes & lambda:
+NB2 = nrow(beta_matrix) #make sure that this is the sample size of the analysis (no missings in covariates)
+
+#Q-Q plots
+pdf("PACE_EPIC_ModelB2_QQ_Plot_15-08f.pdf")
+qq(all.resultsB2$P_VAL,main="PACE_EPIC_QQ-plot")
+dev.off()
+
+# export table of results
+write.table(all.resultsB2, "PACE_EPIC_ModelB2_15-08f.txt",na="NA")
+gzip("PACE_EPIC_ModelB2_15-08f.txt")
+
+#################################################################################
+
+PHENO<-pheno.absf
+
+### REMOVE THE INDIVIDUALS WITH MISSING INFORMATION 
+
+fnbetas.adj<-fnbetas.adj.OG[,(colnames(fnbetas.adj.OG)  %in% PHENO$Basename)]
+omegas<-omegas.OG[(rownames(omegas.OG)  %in% PHENO$Basename),]
+
+#########omegas
+
+#Check the order to be the same between Methilation data and pheno data
+identical(colnames(fnbetas.adj), as.character(PHENO$Basename)) ##FALSE
+
+#To Correct the order of the phenotipic data identical(colnames(fnbetas.adj), gsub("/home/isglobal.lan/mbustamante/data/WS_INMA/Methylation_INMA/PACE/Placentomics/raw_data/idat_files/","",PHENO$Basename)) ##FALSE
+PHENO <- PHENO[match(colnames(fnbetas.adj),as.vector(PHENO$Basename)), ] 
+
+#Check the order to be the same between Methilation data and pheno data
+identical(colnames(fnbetas.adj), as.character(PHENO$Basename)) ##TRUE
+
+#Check the order to be the same in the id's of Methilation data and omegas 
+identical(colnames(fnbetas.adj), rownames(omegas)) ###True
+
+# Check the dimention of the N to be consistent between the datasets
+dim(omegas)      #      154   3      -> Samples in Rows    
+dim(fnbetas.adj) #   478434   154    -> Samples in Columns 
+dim(PHENO)       #      154   86     -> Samples in Rows    
+
+# The Size of N match between the datasets and is in the same order. 
+
+#Remove outliers from METH (methylation data where probes are rows and samples are columns)
+
+system.time(OutlierResults<-removeOutliers(fnbetas.adj)) 
+fnbetas.adj2<-OutlierResults[[1]]
+dim(fnbetas.adj2)
+Log<-OutlierResults[[2]]
+#save(Log,file="PACE_INMA_Outlier_log.Rdata") #save log
+
+#transpose betas so that rows are samples and columns are probes
+beta_matrix = t(fnbetas.adj2)
+
+# omegas
+# Ensure CellMix matrix matches methylation beta-value matrix and other phenotype data
+table(ifelse(rownames(omegas)==PHENO$Basename,"MATCHED","Not Matched"))
+#MATCHED 168
+table(ifelse(rownames(omegas)==rownames(beta_matrix),"MATCHED","Not Matched"))
+#MATCHED 168 
+#################################################################################
+## C MODELS 1 and 2 (PM2.5 asdorbance)
+
+#################################################################################
+#Model C1 
+
+#Methylation = pregnancy PM2.5 absorbance levels + child sex + parity + 
+# maternal education + maternal smoking during pregnancy + neighborhood SES + 
+# season of conception + ancestry (+ selection)
+
+#### Modeling with covariate and cell-mix adjustment
+
+#Add function for running the model 
+RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X5, X6, X7, X8 ) {
+  mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7,maxit=200))
+  if(class(mod) == "try-error"){
+    print(paste("error thrown by column", methcol))
+    invisible(rep(NA, 3))
+  }else cf = coeftest(mod, vcov=vcovHC(mod, type="HC0"))
+  cf[2, c("Estimate", "Std. Error", "Pr(>|z|)")]
+}
+
+#Run adjusted MWAS
+
+# Variables in the model
+
+system.time(ind.resC1 <- mclapply(setNames(seq_len(ncol(beta_matrix)), dimnames(beta_matrix)[[2]]), RLMtest, meth_matrix=beta_matrix, 
+                                  exposure=PHENO[,6] # EXPOSURE   PM2.5 abs levels
+                                  , X1=PHENO[,8]	# Maternal age 
+                                  , X2=PHENO[,9]	# Child sex
+                                  , X3=PHENO[,10]	# Parity 
+                                  , X4=PHENO[,11]	# Maternal education
+                                  , X5=PHENO[,12]	# Maternal smoking during pregnancy
+                                  , X6=PHENO[,13]	# Neighborhood SES
+                                  , X7=PHENO[,14]	# Season of conception
+                                  , X8=PHENO[,15]	# ancestry  
+                                  #, X9=PHENO[,2]	#  Cohort  Es nomes sabadell
+))
+Sys.time()
+
+
+
+#Process covariate and reffree adjsuted results
+setattr(ind.resC1, 'class', 'data.frame')
+setattr(ind.resC1, "row.names", c(NA_integer_,4))
+setattr(ind.resC1, "names", make.names(names(ind.resC1), unique=TRUE))
+probelistnamesC1 = names(ind.resC1)
+all.resultsC1 = t(data.table(ind.resC1))
+all.resultsC1 = data.table(all.resultsC1)
+all.resultsC1[, probeID := probelistnamesC1]
+setnames(all.resultsC1, c("BETA","SE", "P_VAL", "probeID")) # rename columns
+setcolorder(all.resultsC1, c("probeID","BETA","SE", "P_VAL"))
+rm(probelistnamesC1, ind.resC1)
+
+#Lambda calculation
+lambdaC1 = qchisq(median(all.resultsC1$P_VAL,na.rm=T), df = 1, lower.tail = F)/
+  qchisq(0.5, 1)
+## Save analysis sample sizes & lambda:
+NC1 = nrow(beta_matrix) #make sure that this is the sample size of the analysis (no missings in covariates)
+
+
+#Q-Q plots
+pdf("PACE_EPIC_ModelC1_QQ_Plot_15-08f.pdf")
+qq(all.resultsC1$P_VAL,main="PACE_EPIC_QQ-plot")
+dev.off()
+
+# export table of results
+write.table(all.resultsC1, "PACE_EPIC_ModelC1_15-08f.txt",na="NA")
+gzip("PACE_EPIC_ModelC1_15-08f.txt")
+
+#################################################################################
+#Model C2 
+
+#Methylation = pregnancy PM2.5 absorbance levels + child sex + parity + 
+# maternal education + maternal smoking during pregnancy + neighborhood SES + 
+# season of conception + ancestry (+ selection)
+
+#### Modeling with covariate and cell-mix adjustment
+
+#Add function for running the model 
+
+RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X5, X6, X7, X8, cell1, cell2, cell3,cell4,cell5,cell6,cell7) {
+  mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+cell1+cell2+cell3+cell4+cell5+cell6+cell7,maxit=200))
+  if(class(mod) == "try-error"){
+    print(paste("error thrown by column", methcol))
+    invisible(rep(NA, 3))
+  }else 
+    cf = coeftest(mod, vcov=vcovHC(mod, type="HC0"))
+  cf[2, c("Estimate", "Std. Error", "Pr(>|z|)")]
+}
+
+#Run adjusted MWAS
+
+# Variables in the model 
+system.time(ind.resC2 <- mclapply(setNames(seq_len(ncol(beta_matrix)), dimnames(beta_matrix)[[2]]), RLMtest, meth_matrix=beta_matrix, 
+                                  exposure=PHENO[,6] # EXPOSURE   PM2.5 abs levels
+                                  , X1=PHENO[,8]	# maternal age
+                                  , X2=PHENO[,9]	# child sex
+                                  , X3=PHENO[,10]	# Parity 
+                                  , X4=PHENO[,11]	# Maternal education 
+                                  , X5=PHENO[,12]	# Maternal smoking during pregnancy
+                                  , X6=PHENO[,13]	# neighbourhood SES 
+                                  , X7=PHENO[,14]	# Season of conception
+                                  , X8=PHENO[,15]	# ancestry  
+                                  #, X9=PHENO[,2]	#  Cohort   nomes sabadell
+                                  , cell1 = omegas[,1]
+                                  , cell2 = omegas[,2]
+                                  , cell3 = omegas[,3]
+                                  , cell4 = omegas[,4]
+                                  , cell5 = omegas[,5]
+                                  , cell6 = omegas[,6]
+                                  , cell7 = omegas[,7]
+))
+Sys.time()
+
+#Process covariate and reffree adjsuted results
+setattr(ind.resC2, 'class', 'data.frame')
+setattr(ind.resC2, "row.names", c(NA_integer_,4))
+setattr(ind.resC2, "names", make.names(names(ind.resC2), unique=TRUE))
+probelistnamesC2 = names(ind.resC2)
+all.resultsC2 = t(data.table(ind.resC2))
+all.resultsC2 = data.table(all.resultsC2)
+all.resultsC2[, probeID := probelistnamesC2]
+setnames(all.resultsC2, c("BETA","SE", "P_VAL", "probeID")) # rename columns
+setcolorder(all.resultsC2, c("probeID","BETA","SE", "P_VAL"))
+rm(probelistnamesC2, ind.resC2)
+
+#Lambda calculation
+lambdaC2 = qchisq(median(all.resultsC2$P_VAL,na.rm=T), df = 1, lower.tail = F)/
+  qchisq(0.5, 1)
+## Save analysis sample sizes & lambda:
+NC2 = nrow(beta_matrix) #make sure that this is the sample size of the analysis (no missings in covariates)
+
+#Q-Q plots
+pdf("PACE_EPIC_ModelC2_QQ_Plot_15-08f.pdf")
+qq(all.resultsC2$P_VAL,main="PACE_EPIC_QQ-plot")
+dev.off()
+
+# export table of results
+write.table(all.resultsC2, "PACE_EPIC_ModelC2_15-08f.txt",na="NA")
+gzip("PACE_EPIC_ModelC2_15-08f.txt")
+#################################################################################
+## D MODELS 1 and 2 (PB)
+
+#################################################################################
+
+PHENO<-pheno.pbf
+
+### REMOVE THE INDIVIDUALS WITH MISSING INFORMATION 
+
+fnbetas.adj<-fnbetas.adj.OG[,(colnames(fnbetas.adj.OG)  %in% PHENO$Basename)]
+
+
+omegas<-omegas.OG[(rownames(omegas.OG)  %in% PHENO$Basename),]
+
+#########omegas
+
+#Check the order to be the same between Methilation data and pheno data
+identical(colnames(fnbetas.adj), as.character(PHENO$Basename)) ##FALSE
+
+#To Correct the order of the phenotipic data identical(colnames(fnbetas.adj), gsub("/home/isglobal.lan/mbustamante/data/WS_INMA/Methylation_INMA/PACE/Placentomics/raw_data/idat_files/","",PHENO$Basename)) ##FALSE
+PHENO <- PHENO[match(colnames(fnbetas.adj),as.vector(PHENO$Basename)), ] 
+
+#Check the order to be the same between Methilation data and pheno data
+identical(colnames(fnbetas.adj), as.character(PHENO$Basename)) ##TRUE
+
+
+#Check the order to be the same in the id's of Methilation data and omegas 
+identical(colnames(fnbetas.adj), rownames(omegas)) ###True
+
+
+# Check the dimention of the N to be consistent between the datasets
+dim(omegas)      #      154   3      -> Samples in Rows    
+dim(fnbetas.adj) #   478434   154    -> Samples in Columns 
+dim(PHENO)       #      154   86     -> Samples in Rows    
+
+# The Size of N match between the datasets and is in the same order. 
+
+
+#Remove outliers from METH (methylation data where probes are rows and samples are columns)
+
+system.time(OutlierResults<-removeOutliers(fnbetas.adj)) 
+fnbetas.adj2<-OutlierResults[[1]]
+dim(fnbetas.adj2)
+Log<-OutlierResults[[2]]
+#save(Log,file="PACE_INMA_Outlier_log.Rdata") #save log
+
+#transpose betas so that rows are samples and columns are probes
+beta_matrix = t(fnbetas.adj2)
+
+
+# omegas
+# Ensure CellMix matrix matches methylation beta-value matrix and other phenotype data
+table(ifelse(rownames(omegas)==PHENO$Basename,"MATCHED","Not Matched"))
+#MATCHED 168
+table(ifelse(rownames(omegas)==rownames(beta_matrix),"MATCHED","Not Matched"))
+#MATCHED 168 
+
+#################################################################################
+#Model D1 
+
+#Methylation = pregnancy PM2.5 absorbance levels + child sex + parity + 
+# maternal education + maternal smoking during pregnancy + neighborhood SES + 
+# season of conception + ancestry (+ selection)
+
+#### Modeling with covariate and cell-mix adjustment
+
+#Add function for running the model 
+
+RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3,X4,X5,X6,X7,X8) {
+  mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7,maxit=200))
+  if(class(mod) == "try-error"){
+    print(paste("error thrown by column", methcol))
+    invisible(rep(NA, 3))
+  }else 
+    cf = coeftest(mod, vcov=vcovHC(mod, type="HC0"))
+  cf[2, c("Estimate", "Std. Error", "Pr(>|z|)")]
+}
+
+
+#Run adjusted MWAS
+
+# Variables in the model
+
+system.time(ind.resD1 <- mclapply(setNames(seq_len(ncol(beta_matrix)), dimnames(beta_matrix)[[2]]), RLMtest, meth_matrix=beta_matrix, 
+                                  exposure=PHENO[,7] # EXPOSURE   black carbon abs
+                                  , X1=PHENO[,8]	# Maternal age 
+                                  , X2=PHENO[,9]	# Child sex
+                                  , X3=PHENO[,10]	# Parity 
+                                  , X4=PHENO[,11]	# Maternal education
+                                  , X5=PHENO[,12]	# Maternal smoking during pregnancy
+                                  , X6=PHENO[,13]	# Neighborhood SES
+                                  , X7=PHENO[,14]	# Season of conception
+                                  , X8=PHENO[,15]	# ancestry  
+                                  #, X9=PHENO[,2]	#  Cohort nomes es valencia
+))
+Sys.time()
+
+
+
+#Process covariate and reffree adjsuted results
+setattr(ind.resD1, 'class', 'data.frame')
+setattr(ind.resD1, "row.names", c(NA_integer_,4))
+setattr(ind.resD1, "names", make.names(names(ind.resD1), unique=TRUE))
+probelistnamesD1 = names(ind.resD1)
+all.resultsD1 = t(data.table(ind.resD1))
+all.resultsD1 = data.table(all.resultsD1)
+all.resultsD1[, probeID := probelistnamesD1]
+setnames(all.resultsD1, c("BETA","SE", "P_VAL", "probeID")) # rename columns
+setcolorder(all.resultsD1, c("probeID","BETA","SE", "P_VAL"))
+rm(probelistnamesD1, ind.resD1)
+
+#Lambda calculation
+lambdaD1 = qchisq(median(all.resultsD1$P_VAL,na.rm=T), df = 1, lower.tail = F)/
+  qchisq(0.5, 1)
+## Save analysis sample sizes & lambda:
+ND1 = nrow(beta_matrix) #make sure that this is the sample size of the analysis (no missings in covariates)
+
+
+#Q-Q plots
+pdf("PACE_INMA_ModelD1_QQ_Plot_15-08f.pdf")
+qq(all.resultsD1$P_VAL,main="PACE_INMA_QQ-plot")
+dev.off()
+
+# export table of results
+write.table(all.resultsD1, "PACE_INMA_ModelD1_15-08f.txt",na="NA")
+gzip("PACE_INMA_ModelD1_15-08f.txt")
+
+
+#################################################################################
+#Model D2 
+
+#Methylation = pregnancy PM2.5 absorbance levels + child sex + parity + 
+# maternal education + maternal smoking during pregnancy + neighborhood SES + 
+# season of conception + ancestry (+ selection)
+
+#### Modeling with covariate and cell-mix adjustment
+
+#Add function for running the model 
+
+RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X5, X6, X7, X8, cell1, cell2, cell3, cell4, cell5, cell6, cell7) {
+  mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+cell1+cell2+cell3+cell4+cell5+cell6+cell7,maxit=200))
+  if(class(mod) == "try-error"){
+    print(paste("error thrown by column", methcol))
+    invisible(rep(NA, 3))
+  }else 
+    cf = coeftest(mod, vcov=vcovHC(mod, type="HC0"))
+  cf[2, c("Estimate", "Std. Error", "Pr(>|z|)")]
+}
+#Run adjusted MWAS
+
+# Variables in the model  
+system.time(ind.resD2 <- mclapply(setNames(seq_len(ncol(beta_matrix)), dimnames(beta_matrix)[[2]]), RLMtest, meth_matrix=beta_matrix, 
+                                  exposure=PHENO[,7] # EXPOSURE   black carbon abs
+                                  , X1=PHENO[,8]	# maternal age
+                                  , X2=PHENO[,9]	# child sex
+                                  , X3=PHENO[,10]	# Parity 
+                                  , X4=PHENO[,11]	# Maternal education 
+                                  , X5=PHENO[,12]	# Maternal smoking during pregnancy
+                                  , X6=PHENO[,13]	# neighbourhood SES 
+                                  , X7=PHENO[,14]	# Season of conception
+                                  , X8=PHENO[,15]	# ancestry  
+                                  #, X9=PHENO[,2]	#  Cohort  es nomes valencia
+                                  , cell1 = omegas[,1]
+                                  , cell2 = omegas[,2]
+                                  , cell3 = omegas[,3]
+                                  , cell4 = omegas[,4]
+                                  , cell5 = omegas[,5]
+                                  , cell6 = omegas[,6]
+                                  , cell7 = omegas[,7]
+))
+Sys.time()
+
+#Process covariate and reffree adjsuted results
+setattr(ind.resD2, 'class', 'data.frame')
+setattr(ind.resD2, "row.names", c(NA_integer_,4))
+setattr(ind.resD2, "names", make.names(names(ind.resD2), unique=TRUE))
+probelistnamesD2 = names(ind.resD2)
+all.resultsD2 = t(data.table(ind.resD2))
+all.resultsD2 = data.table(all.resultsD2)
+all.resultsD2[, probeID := probelistnamesD2]
+setnames(all.resultsD2, c("BETA","SE", "P_VAL", "probeID")) # rename columns
+setcolorder(all.resultsD2, c("probeID","BETA","SE", "P_VAL"))
+rm(probelistnamesD2, ind.resD2)
+
+#Lambda calculation
+lambdaD2 = qchisq(median(all.resultsD2$P_VAL,na.rm=T), df = 1, lower.tail = F)/
+  qchisq(0.5, 1)
+## Save analysis sample sizes & lambda:
+ND2 = nrow(beta_matrix) #make sure that this is the sample size of the analysis (no missings in covariates)
+
+#Q-Q plots
+pdf("PACE_EPIC_ModelD2_QQ_Plot_15-08f.pdf")
+qq(all.resultsD2$P_VAL,main="PACE_EPIC_QQ-plot")
+dev.off()
+
+# export table of results
+write.table(all.resultsD2, "PACE_EPIC_ModelD2_15-08f.txt",na="NA")
+gzip("PACE_EPIC_ModelD2_15-08f.txt")
+
+
+#################################################################################
+## MODELS 3 A and B   ## DOUBLECHECK SMOKING
+
+#################################################################################
+#  Sensitivity analysis (models restricted to mothers that did not smoke during pregnancy) 
+#additionally adjusted model for cellular heterogeneity
+PHENO<-pheno.no2f
+PHENO<-PHENO[PHENO[,12]==0,]
+### REMOVE THE INDIVIDUALS WITH MISSING INFORMATION 
+
+fnbetas.adj<-fnbetas.adj.OG[,(colnames(fnbetas.adj.OG)  %in% PHENO$Basename)]
+
+
+omegas<-omegas.OG[(rownames(omegas.OG)  %in% PHENO$Basename),]
+
+#########omegas
+
+#Check the order to be the same between Methilation data and pheno data
+identical(colnames(fnbetas.adj), as.character(PHENO$Basename)) ##FALSE
+
+#To Correct the order of the phenotipic data identical(colnames(fnbetas.adj), gsub("/home/isglobal.lan/mbustamante/data/WS_INMA/Methylation_INMA/PACE/Placentomics/raw_data/idat_files/","",PHENO$Basename)) ##FALSE
+PHENO <- PHENO[match(colnames(fnbetas.adj),as.vector(PHENO$Basename)), ] 
+
+#Check the order to be the same between Methilation data and pheno data
+identical(colnames(fnbetas.adj), as.character(PHENO$Basename)) ##TRUE
+
+
+#Check the order to be the same in the id's of Methilation data and omegas 
+identical(colnames(fnbetas.adj), rownames(omegas)) ###True
+
+
+# Check the dimention of the N to be consistent between the datasets
+dim(omegas)      #      154   3      -> Samples in Rows    
+dim(fnbetas.adj) #   478434   154    -> Samples in Columns 
+dim(PHENO)       #      154   86     -> Samples in Rows    
+
+
+#Remove outliers from METH (methylation data where probes are rows and samples are columns)
+
+system.time(OutlierResults<-removeOutliers(fnbetas.adj)) 
+fnbetas.adj2<-OutlierResults[[1]]
+dim(fnbetas.adj2)
+Log<-OutlierResults[[2]]
+#save(Log,file="PACE_INMA_Outlier_log.Rdata") #save log
+
+#transpose betas so that rows are samples and columns are probes
+beta_matrix_NSP = t(fnbetas.adj2)
+omegas_NSP<-omegas
+PHENO_NSP<-PHENO[match(rownames(omegas_NSP),as.vector(PHENO$Basename)), ]
+
+# omegas
+# Ensure CellMix matrix matches methylation beta-value matrix and other phenotype data
+table(ifelse(rownames(omegas_NSP)==PHENO_NSP$Basename,"MATCHED","Not Matched"))
+#MATCHED 168
+table(ifelse(rownames(omegas_NSP)==rownames(beta_matrix_NSP),"MATCHED","Not Matched"))
+#MATCHED 168 
+
+#################################################################################
+# Model A3 
+##Methylation = pregnancy NO2  levels + maternal age + child sex + parity + 
+# maternal education + neighborhood SES + season of conception + ancestry + 
+# Houseman free reference estimations (+ selection) 
+
+
+#### Modeling with covariate adjustment
+
+#Add function for running the model (4 covariates)
+RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X5, X6, X7,X8, cell1, cell2, cell3, cell4, cell5, cell6, cell7) {
+  mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X8+cell1+cell2+cell3+cell4+cell5+cell6+cell7,maxit=200))
+  if(class(mod) == "try-error"){
+    print(paste("error thrown by column", methcol))
+    invisible(rep(NA, 3))
+  }else cf = coeftest(mod, vcov=vcovHC(mod, type="HC0"))
+  cf[2, c("Estimate", "Std. Error", "Pr(>|z|)")]
+}
+
+#Run adjusted MWAS
+# Variables in the model 
+
+system.time(ind.resA3 <- mclapply(setNames(seq_len(ncol(beta_matrix_NSP)), dimnames(beta_matrix_NSP)[[2]]), RLMtest, meth_matrix=beta_matrix_NSP, 
+                                 exposure=PHENO_NSP[,3] #EXPOSURE (NO2)--  69 <-"PHENO_NSP$e3_no2_ratio_preg"
+                                 , X1=PHENO_NSP[,8]	# Maternal age -- 18 <-"mage.x"
+                                 , X2=PHENO_NSP[,9]	# Child sex
+                                 , X3=PHENO_NSP[,10]	# Parity -- 88 <-"parity" 
+                                 , X4=PHENO_NSP[,11]	# Maternal education  -- 78 <-"estudios3c"
+                                 , X5=PHENO_NSP[,13]	# neighbourhood SES
+                                 , X6=PHENO_NSP[,14]	# Season of conception
+                                 , X7=PHENO_NSP[,15]	# ancestry
+                                 , X8=PHENO_NSP[,2]	  # cohort
+                                 , cell1 = omegas_NSP[,1]# Houseman free r.e. -- Omegas[,1]
+                                 , cell2 = omegas_NSP[,2]# Houseman free r.e. -- Omegas[,2]
+                                 , cell3 = omegas_NSP[,3]# Houseman free r.e. -- Omegas[,3]
+                                 , cell4 = omegas_NSP[,4]
+                                 , cell5 = omegas_NSP[,5]
+                                 , cell6 = omegas_NSP[,6]
+                                 , cell7 = omegas_NSP[,7]
+                                 
+))
+Sys.time()
+
+#Process covariate adjusted results
+setattr(ind.resA3, 'class', 'data.frame')
+setattr(ind.resA3, "row.names", c(NA_integer_,4))
+setattr(ind.resA3, "names", make.names(names(ind.resA3), unique=TRUE))
+probelistnamesA3 = names(ind.resA3)
+all.resultsA3 = t(data.table(ind.resA3))
+all.resultsA3 = data.table(all.resultsA3)
+all.resultsA3[, probeID := probelistnamesA3]
+setnames(all.resultsA3, c("BETA","SE", "P_VAL", "probeID")) # rename columns
+setcolorder(all.resultsA3, c("probeID","BETA","SE", "P_VAL"))
+rm(probelistnamesA3, ind.resA3)
+
+#Lambda calculation
+lambdaA3 = qchisq(median(all.resultsA3$P_VAL,na.rm=T), df = 1, lower.tail = F)/
+  qchisq(0.5, 1)
+## Save analysis sample sizes & lambda:
+NA3 = nrow(beta_matrix_NSP) #make sure that this is the sample size of the analysis (no missings in covariates)
+
+#Q-Q plots
+pdf("PACE_EPIC_ModelA3_QQ_Plot_15-08f.pdf")
+qq(all.resultsA3$P_VAL,main="PACE_EPIC_QQ-plot")
+dev.off()
+
+# export table of results
+write.table(all.resultsA3, "PACE_EPIC_ModelA3_15-08f.txt",na="NA")
+gzip("PACE_EPIC_ModelA3_15-08f.txt")
+
+################################################################################
+PHENO<-pheno.pm25f
+PHENO<-PHENO[PHENO[,12]==0,]
+### REMOVE THE INDIVIDUALS WITH MISSING INFORMATION 
+
+fnbetas.adj<-fnbetas.adj.OG[,(colnames(fnbetas.adj.OG)  %in% PHENO$Basename)]
+
+
+omegas<-omegas.OG[(rownames(omegas.OG)  %in% PHENO$Basename),]
+
+#########omegas
+
+#Check the order to be the same between Methilation data and pheno data
+identical(colnames(fnbetas.adj), as.character(PHENO$Basename)) ##FALSE
+
+#To Correct the order of the phenotipic data identical(colnames(fnbetas.adj), gsub("/home/isglobal.lan/mbustamante/data/WS_INMA/Methylation_INMA/PACE/Placentomics/raw_data/idat_files/","",PHENO$Basename)) ##FALSE
+PHENO <- PHENO[match(colnames(fnbetas.adj),as.vector(PHENO$Basename)), ] 
+
+#Check the order to be the same between Methilation data and pheno data
+identical(colnames(fnbetas.adj), as.character(PHENO$Basename)) ##TRUE
+
+
+#Check the order to be the same in the id's of Methilation data and omegas 
+identical(colnames(fnbetas.adj), rownames(omegas)) ###True
+
+
+# Check the dimention of the N to be consistent between the datasets
+dim(omegas)      #      154   3      -> Samples in Rows    
+dim(fnbetas.adj) #   478434   154    -> Samples in Columns 
+dim(PHENO)       #      154   86     -> Samples in Rows    
+
+
+
+#Remove outliers from METH (methylation data where probes are rows and samples are columns)
+
+system.time(OutlierResults<-removeOutliers(fnbetas.adj)) 
+fnbetas.adj2<-OutlierResults[[1]]
+dim(fnbetas.adj2)
+Log<-OutlierResults[[2]]
+#save(Log,file="PACE_INMA_Outlier_log.Rdata") #save log
+
+#transpose betas so that rows are samples and columns are probes
+beta_matrix_NSP = t(fnbetas.adj2)
+
+PHENO_NSP<-PHENO[match(rownames(omegas_NSP),as.vector(PHENO$Basename)), ]
+# omegas
+# Ensure CellMix matrix matches methylation beta-value matrix and other phenotype data
+table(ifelse(rownames(omegas)==PHENO_NSP$Basename,"MATCHED","Not Matched"))
+#MATCHED 168
+table(ifelse(rownames(omegas)==rownames(beta_matrix_NSP),"MATCHED","Not Matched"))
+ 
+omegas_SNP<-omegas
+#################################################################################
+#Model B3 
+
+#Methylation = pregnancy PM2.5 levels + maternal age + child sex + parity + 
+# maternal education + neighborhood SES + season of conception + ancestry + 
+#Houseman free reference estimations (+ selection) 
+
+#### Modeling with covariate adjustment
+
+#Add function for running the model (4 covariates)
+RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3,X4, X5, X6, X7, X8, Cell1, Cell2, Cell3, Cell4, Cell5, Cell6, Cell7) {
+  mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X8+Cell1+Cell2+Cell3+Cell4+Cell5+Cell6+Cell7,maxit=200))
+  if(class(mod) == "try-error"){
+    print(paste("error thrown by column", methcol))
+    invisible(rep(NA, 3))
+  }else cf = coeftest(mod, vcov=vcovHC(mod, type="HC0"))
+  cf[2, c("Estimate", "Std. Error", "Pr(>|z|)")]
+}
+
+#Run adjusted MWAS
+# Variables in the model  72,84,80,87,29,88,89,91,52) 41
+system.time(ind.resB3 <- mclapply(setNames(seq_len(ncol(beta_matrix_NSP)), dimnames(beta_matrix_NSP)[[2]]), RLMtest, meth_matrix=beta_matrix_NSP, 
+                                 exposure=PHENO_NSP[,5] #EXPOSURE (PM2.5)
+                                 , X1=PHENO_NSP[,8]	# Maternal age -- 18 <-"mage.x"
+                                 , X2=PHENO_NSP[,9]	# Child sex
+                                 , X3=PHENO_NSP[,10]	# Parity -- 88 <-"parity" 
+                                 , X4=PHENO_NSP[,11]	# Maternal education  -- 78 <-"estudios3c"
+                                 , X5=PHENO_NSP[,13]	# neighbourhood SES
+                                 , X6=PHENO_NSP[,14]	# Season of conception
+                                 , X7=PHENO_NSP[,15]	# ancestry
+                                 , X8=PHENO_NSP[,2]	  # cohort
+                                 , Cell1 = omegas_NSP[,1]
+                                 , Cell2 = omegas_NSP[,2]
+                                 , Cell3 = omegas_NSP[,3]
+                                 , Cell4 = omegas_NSP[,4]
+                                 , Cell5 = omegas_NSP[,5]
+                                 , Cell6 = omegas_NSP[,6]
+                                 , Cell7 = omegas_NSP[,7]
+                                 
+                                 
+))
+Sys.time()
+
+#Process covariate and reffree adjsuted results
+setattr(ind.resB3, 'class', 'data.frame')
+setattr(ind.resB3, "row.names", c(NA_integer_,4))
+setattr(ind.resB3, "names", make.names(names(ind.resB3), unique=TRUE))
+probelistnamesB3 = names(ind.resB3)
+all.resultsB3 = t(data.table(ind.resB3))
+all.resultsB3 = data.table(all.resultsB3)
+all.resultsB3[, probeID := probelistnamesB3]
+setnames(all.resultsB3, c("BETA","SE", "P_VAL", "probeID")) # rename columns
+setcolorder(all.resultsB3, c("probeID","BETA","SE", "P_VAL"))
+rm(probelistnamesB3, ind.resB3)
+
+#Lambda calculation
+lambdaB3 = qchisq(median(all.resultsB3$P_VAL,na.rm=T), df = 1, lower.tail = F)/
+  qchisq(0.5, 1)
+## Save analysis sample sizes & lambda:
+NB3 = nrow(beta_matrix_NSP) #make sure that this is the sample size of the analysis (no missings in covariates)
+
+#Q-Q plots
+pdf("PACE_EPIC_ModelB3_QQ_Plot_15-08f.pdf")
+qq(all.resultsB3$P_VAL,main="PACE_EPIC_QQ-plot")
+dev.off()
+
+# export table of results
+write.table(all.resultsB3, "PACE_EPIC_ModelB3_15-08f.txt",na="NA")
+gzip("PACE_EPIC_ModelB3_15-08f.txt")
+
+
+#################################################################################
+## MODELS 4 A and B (Sensitivity analysis models restricted to European ancestry using NO2 and PM2.5)
+
+#################################################################################
+#	Sensitivity analysis (models restricted to European ancestry) 
+# additionally adjusted model for cellular heterogeneity
+PHENO<-pheno.no2f
+
+PHENO<-PHENO[PHENO[,15]=="European",] ###### REVISAR
+### REMOVE THE INDIVIDUALS WITH MISSING INFORMATION 
+fnbetas.adj<-fnbetas.adj.OG[,(colnames(fnbetas.adj.OG)  %in% PHENO$Basename)]
+omegas<-omegas.OG[(rownames(omegas.OG)  %in% PHENO$Basename),]
+
+#########omegas
+#Check the order to be the same between Methilation data and pheno data
+identical(colnames(fnbetas.adj), as.character(PHENO$Basename)) ##FALSE
+#To Correct the order of the phenotipic data identical(colnames(fnbetas.adj), gsub("/home/isglobal.lan/mbustamante/data/WS_INMA/Methylation_INMA/PACE/Placentomics/raw_data/idat_files/","",PHENO$Basename)) ##FALSE
+PHENO <- PHENO[match(colnames(fnbetas.adj),as.vector(PHENO$Basename)), ] 
+#Check the order to be the same between Methilation data and pheno data
+identical(colnames(fnbetas.adj), as.character(PHENO$Basename)) ##TRUE
+
+#Check the order to be the same in the id's of Methilation data and omegas 
+identical(colnames(fnbetas.adj), rownames(omegas)) ###True
+
+# Check the dimention of the N to be consistent between the datasets
+dim(omegas)      #      154   3      -> Samples in Rows    
+dim(fnbetas.adj) #   478434   154    -> Samples in Columns 
+dim(PHENO)       #      154   86     -> Samples in Rows    
+
+
+#Remove outliers from METH (methylation data where probes are rows and samples are columns)
+
+system.time(OutlierResults<-removeOutliers(fnbetas.adj)) 
+fnbetas.adj2<-OutlierResults[[1]]
+dim(fnbetas.adj2)
+Log<-OutlierResults[[2]]
+#save(Log,file="PACE_INMA_Outlier_log.Rdata") #save log
+
+#transpose betas so that rows are samples and columns are probes
+beta_matrix = t(fnbetas.adj2)
+
+
+# omegas
+# Ensure CellMix matrix matches methylation beta-value matrix and other phenotype data
+table(ifelse(rownames(omegas)==PHENO$Basename,"MATCHED","Not Matched"))
+#MATCHED 168
+table(ifelse(rownames(omegas)==rownames(beta_matrix),"MATCHED","Not Matched"))
+#MATCHED 168 
+#################################################################################
+# Model A4 
+##Methylation = pregnancy NO2  levels + maternal age + child sex + parity + 
+# maternal education + neighborhood SES + season of conception + ancestry + 
+# Houseman free reference estimations (+ selection) 
+
+#### Modeling with covariate adjustment
+
+#Add function for running the model (4 covariates)
+RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X5, X6, X7, X8, cell1, cell2, cell3, cell4, cell5, cell6, cell7) {
+  mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+cell1+cell2+cell3+cell4+cell5+cell6+cell7,maxit=200))
+  if(class(mod) == "try-error"){
+    print(paste("error thrown by column", methcol))
+    invisible(rep(NA, 3))
+  }else cf = coeftest(mod, vcov=vcovHC(mod, type="HC0"))
+  cf[2, c("Estimate", "Std. Error", "Pr(>|z|)")]
+}
+
+#Run adjusted MWAS
+# Variables in the model  
+system.time(ind.resA4 <- mclapply(setNames(seq_len(ncol(beta_matrix_EUR)), dimnames(beta_matrix_EUR)[[2]]), RLMtest, meth_matrix=beta_matrix_EUR, 
+                                  exposure=PHENO_EUR[,3] #EXPOSURE (NO2)--  69 <-"PHENO_EUR$e3_no2_ratio_preg"
+                                  , X1=PHENO_EUR[,8]	# Maternal age -- 18 <-"mage.x"
+                                  , X2=PHENO_EUR[,9]	# Child sex
+                                  , X3=PHENO_EUR[,10]	# Parity -- 88 <-"parity" 
+                                  , X4=PHENO_EUR[,11]	# Maternal education  -- 78 <-"estudios3c"
+                                  , X5=PHENO_EUR[,13]	# neighbourhood SES
+                                  , X6=PHENO_EUR[,14]	# Season of conception
+                                  , X7=PHENO_EUR[,2]	# (selection)
+                                  , X8=PHENO_EUR[,15]	# ancestry
+                                  , cell1 = omegas_EUR[,1]# Houseman free r.e. -- Omegas[,1]
+                                  , cell2 = omegas_EUR[,2]# Houseman free r.e. -- Omegas[,2]
+                                  , cell3 = omegas_EUR[,3]# Houseman free r.e. -- Omegas[,3]
+                                  , cell4 = omegas_EUR[,4]
+                                  , cell5 = omegas_EUR[,5]
+                                  , cell6 = omegas_EUR[,6]
+                                  , cell7 = omegas_EUR[,7]
+))
+Sys.time()
+
+#Process covariate adjusted results
+setattr(ind.resA4, 'class', 'data.frame')
+setattr(ind.resA4, "row.names", c(NA_integer_,4))
+setattr(ind.resA4, "names", make.names(names(ind.resA4), unique=TRUE))
+probelistnamesA4 = names(ind.resA4)
+all.resultsA4 = t(data.table(ind.resA4))
+all.resultsA4 = data.table(all.resultsA4)
+all.resultsA4[, probeID := probelistnamesA4]
+setnames(all.resultsA4, c("BETA","SE", "P_VAL", "probeID")) # rename columns
+setcolorder(all.resultsA4, c("probeID","BETA","SE", "P_VAL"))
+rm(probelistnamesA4, ind.resA4)
+
+#Lambda calculation
+lambdaA4 = qchisq(median(all.resultsA4$P_VAL,na.rm=T), df = 1, lower.tail = F)/
+  qchisq(0.5, 1)
+## Save analysis sample sizes & lambda:
+NA4 = nrow(beta_matrix_EUR) #make sure that this is the sample size of the analysis (no missings in covariates)
+
+#Q-Q plots
+pdf("PACE_EPIC_ModelA4_QQ_Plot_15-08f.pdf")
+qq(all.resultsA4$P_VAL,main="PACE_EPIC_QQ-plot")
+dev.off()
+
+# export table of results
+write.table(all.resultsA4, "PACE_EPIC_ModelA4_15-08f.txt",na="NA")
+gzip("PACE_EPIC_ModelA4_15-08f.txt")
+
+#################################################################################
+PHENO<-pheno.pm25f
+
+PHENO<-PHENO[PHENO[,15]=="European",] ###### REVISAR
+### REMOVE THE INDIVIDUALS WITH MISSING INFORMATION 
+fnbetas.adj<-fnbetas.adj.OG[,(colnames(fnbetas.adj.OG)  %in% PHENO$Basename)]
+omegas<-omegas.OG[(rownames(omegas.OG)  %in% PHENO$Basename),]
+
+#########omegas
+#Check the order to be the same between Methilation data and pheno data
+identical(colnames(fnbetas.adj), as.character(PHENO$Basename)) ##FALSE
+#To Correct the order of the phenotipic data identical(colnames(fnbetas.adj), gsub("/home/isglobal.lan/mbustamante/data/WS_INMA/Methylation_INMA/PACE/Placentomics/raw_data/idat_files/","",PHENO$Basename)) ##FALSE
+PHENO <- PHENO[match(colnames(fnbetas.adj),as.vector(PHENO$Basename)), ] 
+#Check the order to be the same between Methilation data and pheno data
+identical(colnames(fnbetas.adj), as.character(PHENO$Basename)) ##TRUE
+
+#Check the order to be the same in the id's of Methilation data and omegas 
+identical(colnames(fnbetas.adj), rownames(omegas)) ###True
+
+# Check the dimention of the N to be consistent between the datasets
+dim(omegas)      #      154   3      -> Samples in Rows    
+dim(fnbetas.adj) #   478434   154    -> Samples in Columns 
+dim(PHENO)       #      154   86     -> Samples in Rows    
+#Remove outliers from METH (methylation data where probes are rows and samples are columns)
+
+system.time(OutlierResults<-removeOutliers(fnbetas.adj)) 
+fnbetas.adj2<-OutlierResults[[1]]
+dim(fnbetas.adj2)
+Log<-OutlierResults[[2]]
+#save(Log,file="PACE_INMA_Outlier_log.Rdata") #save log
+
+#transpose betas so that rows are samples and columns are probes
+beta_matrix = t(fnbetas.adj2)
+
+# omegas
+# Ensure CellMix matrix matches methylation beta-value matrix and other phenotype data
+table(ifelse(rownames(omegas)==PHENO$Basename,"MATCHED","Not Matched"))
+#MATCHED 168
+table(ifelse(rownames(omegas)==rownames(beta_matrix),"MATCHED","Not Matched"))
+#MATCHED 168 
+
+PHENO_EUR<-PHENO
+omegas_EUR<-omegas
+beta_matrix_EUR<-beta_matrix
+#################################################################################
+#Model B4 
+
+#Methylation = pregnancy PM2.5 levels + maternal age + child sex + parity + 
+# maternal education + neighborhood SES + season of conception + ancestry + 
+#Houseman free reference estimations (+ selection) 
+
+#### Modeling with covariate adjustment
+
+#Add function for running the model (4 covariates)
+RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3,X4, X5, X6,X7,X8, Cell1, Cell2, Cell3, Cell4, Cell5, Cell6, Cell7) {
+  mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+Cell1+Cell2+Cell3+Cell4+Cell5+Cell6+Cell7,maxit=200))
+  if(class(mod) == "try-error"){
+    print(paste("error thrown by column", methcol))
+    invisible(rep(NA, 3))
+  }else cf = coeftest(mod, vcov=vcovHC(mod, type="HC0"))
+  cf[2, c("Estimate", "Std. Error", "Pr(>|z|)")]
+}
+
+#Run adjusted MWAS
+# Variables in the model colnames(PHENO)[c(72,84,80,87,29,88,89,91,52)] 
+system.time(ind.resB4 <- mclapply(setNames(seq_len(ncol(beta_matrix_EUR)), dimnames(beta_matrix_EUR)[[2]]), RLMtest, meth_matrix=beta_matrix_EUR, 
+                                  exposure=PHENO_EUR[,5] #EXPOSURE (PM2.5)
+                                  , X1=PHENO_EUR[,8]	# Maternal age -- 18 <-"mage.x"
+                                  , X2=PHENO_EUR[,9]	# child sex
+                                  , X3=PHENO_EUR[,10]	# Parity -- 88 <-"parity"
+                                  , X4=PHENO_EUR[,11]	# Maternal education  -- 78 <-"estudios3c"
+                                  , X5=PHENO_EUR[,13]	# Neighborhood ses	
+                                  , X6=PHENO_EUR[,14]	# season of conception	
+                                  , X7=PHENO_EUR[,2]	# (selection)	
+                                  , X8=PHENO_EUR[,15]	# (selection)
+                                  , Cell1 = omegas_EUR[,1]
+                                  , Cell2 = omegas_EUR[,2]
+                                  , Cell3 = omegas_EUR[,3]
+                                  , Cell4 = omegas_EUR[,4]
+                                  , Cell5 = omegas_EUR[,5]
+                                  , Cell6 = omegas_EUR[,6]
+                                  , Cell7 = omegas_EUR[,7]
+))
+Sys.time()
+
+#Process covariate and reffree adjsuted results
+setattr(ind.resB4, 'class', 'data.frame')
+setattr(ind.resB4, "row.names", c(NA_integer_,4))
+setattr(ind.resB4, "names", make.names(names(ind.resB4), unique=TRUE))
+probelistnamesB4 = names(ind.resB4)
+all.resultsB4 = t(data.table(ind.resB4))
+all.resultsB4 = data.table(all.resultsB4)
+all.resultsB4[, probeID := probelistnamesB4]
+setnames(all.resultsB4, c("BETA","SE", "P_VAL", "probeID")) # rename columns
+setcolorder(all.resultsB4, c("probeID","BETA","SE", "P_VAL"))
+rm(probelistnamesB4, ind.resB4)
+
+#Lambda calculation
+lambdaB4 = qchisq(median(all.resultsB4$P_VAL,na.rm=T), df = 1, lower.tail = F)/
+  qchisq(0.5, 1)
+## Save analysis sample sizes & lambda:
+NB4 = nrow(beta_matrix_EUR) #make sure that this is the sample size of the analysis (no missings in covariates)
+
+#Q-Q plots
+pdf("PACE_EPIC_ModelB4_QQ_Plot_15-08f.pdf")
+qq(all.resultsB4$P_VAL,main="PACE_EPIC_QQ-plot")
+dev.off()
+
+# export table of results
+write.table(all.resultsB4, "PACE_EPIC_ModelB4_15-08f.txt",na="NA")
+gzip("PACE_EPIC_ModelB4_15-08f.txt")
+
+# Export lambda for each
+write.table(data.frame(Model = c("A1","B1","C1","D1","A2","B2","C2","D2","A3","B3","A4","B4"), Lambda = c(lambdaA1,lambdaB1,lambdaC1,lambdaD1,lambdaA2,lambdaB2,lambdaC2,lambdaD2,lambdaA3,lambdaB3,lambdaA4,lambdaB4), N=c(NA1,NB1,NC1,ND1,NA2,NB2,NC2,ND2,NA3,NB3,NA4,NB4)), "PACE_EPIC_Lambdas_15-08.txt", na="NA")
+
+
+#################################################################################
+
+# step 8: Correlation between models with different variables
+
+## CHECK CPG ORDER! (merge )
+check<-c(all.resultsB1, all.resultsB2, all.resultsB3, all.resultsB4, all.resultsC1, all.resultsC2, all.resultsD1, all.resultsD2)
+Bmod<-c(all.resultsB1, all.resultsB2, all.resultsB3, all.resultsB4,all.resultsB1, all.resultsB2,all.resultsB1, all.resultsB2)
+namesmods<-c("1AB","2AB","3AB","4AB","1AC","2AC","1AD","2AD")
+CorrelationCPG_pval<-NULL
+CorrelationCPG_betas<-NULL
+CorrelationCPG_betas<-rownames(namesmods)
+CorrelationCPG_pval<-rownames(namesmods)
+
+for (i in 1:8) {
+  #Model B Normality
+  B<-Bmod[i]
+  norB<-shapiro.test(B$betas)
+  FDR<-p.adjust(B$pval, method = "bonferroni")
+  # Model to compare normality
+  C<-chech[i]
+  norC<-shapiro.test(correlationdata$A)
+  # data pairing (check order)
+  identical(B$probeID,C$probeID)
+  correlationdata<-merge(B,C, by.x=B$probeID, by.y=C$probeID)
+  if (norB== x & norC==x ){
+    #Normal Pearson betas, pvalues
+    cor.res<-cor.test(X,Y, method="pearson")
+  }else{
+    # nonorm spearman
+    cor.res<-cor.test(X,Y, method="spearman")
+  }
+  CorrelationCPG_pval[i,1]<-cor.res
+  CorrelationCPG_pval[i,2]<-FDR
+  CorrelationCPG_betas[i,1]<-cor.res
+  CorrelationCPG_betas[i,2]<-FDR
+}
+
+for(i in c(check, Bmod[1:4])){
+  Vpdata<-NULL
+  Vpdata$log10pval<- -log(i$pval)
+  Vpdata$FC<-log2()
+  png(paste("Volcano_",str(namemods),".txt"))
+  plotVolcano(i[,c(1,2)], test = "G", pAdj = "BH", sigThresh = 0.05, main= paste("volcanoplot of model", namesmods))
+  dev.off()
+} 
+
+
+## QC table check new methilation relation omegas sex..
+
+
+################################################################################
+### Summarize probes
+
+descriptives<-function(x){
+  tmp<-c(min(x,na.rm=T),quantile(x,probs=c(.1,.25,.5),na.rm=T),mean(x,na.rm=T), median(x,na.rm=T),sd(x,na.rm=T),quantile(x,probs=c(.75,.90),na.rm=T),max(x,na.rm=T),sum(is.na(x)))
+  names(tmp)[c(1,5:7,10:11)]<-c("Min.","Mean","Median","SD","Max.","NA")
+  return(tmp)
+}
+
+desc<-t(apply(beta_matrix,2,descriptives))
+write.table(desc, "PACE_STUDYNAME_CpG_summary_date.txt", sep = "\t", col.names = T, row.names = T, append = F, quote=FALSE)
+
+
+#################################################################################
+### Venn diagram  for subjects
+
+polnavec<-as.data.frame(matrix(ncol=0,nrow = 350))
+for( i in c(3:7)){
+  PHENO[,i][as.vector(PHENO[,i]) == ""] = NA
+  polnavec$new<-as.numeric(!is.na(PHENO[,i]))
+  names(polnavec)[names(polnavec)=="new"] <- colnames(PHENO[i])
+}
+
+colSums(polnavec)
+
+#### Venn diagram per expos
+
+for (cohort in unique(PHENO$cohort.x)){
+  a <- vennCounts(!apply(PHENO[PHENO$cohort.x==cohort,69:73]),2,is.na)
+  vennDiagram(a);title(cohort)
+}
+maxlen<-length(colnames(polnavec))
+Venndata<-NULL
+
+for (i in c(1,2,3,4,5)){
+  if(i<5){
+    rg<-(i+1):5
+    for (j in rg){
+      print(paste(colnames(polnavec)[i],"_",colnames(polnavec)[j]))
+      N<-length(which(polnavec[,i]==1 & polnavec[,j]==1))
+      print(N)
+      Venndata<-c(Venndata, c(colnames(polnavec),N))
+    }
+  }
+}
+png("Venndiagram_Subjects_EPIC.png")
+vennDiagram(vennCounts(polnavec),circle.col=c("red","green","blue","yellow","purple"))
+dev.off()    
+
+
+
+#################################################################################
+# step 9: Top 100 most significants of each model (+annotation)  ### canviar noms d'arxius i variables
+
+#annotation to a dataframe
+annot.df<-as.data.frame(annot)
+FDR<-p.adjust(pvals, method = "bonferroni")
+pvthresh<- 1e-5
+
+EASIER::get_annotattions()
+SigResA1<-all.resultsA1[all.resultsA1$P_VAL<pvthresh,]
+TopResA1<-SigResA1[order(SigResA1$P_VAL), ]
+TopResA1 <- merge(TopResA1,annot.df[,c("Name","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
+TopResA1<-TopResA1[order(TopResA1$P_VAL),]
+TopResA1$EASIERANOT<-EASIER::get_annotattions(TpoResA1$probeID,artype = "EPIC")
+dim(all.resultsA1)
+dim(SigResA1)
+write.table(TopResA1, "PACE_EPIC_ModelA1_15-08_TopResults.txt",na="NA")
+
+
+SigResB1<-all.resultsB1[all.resultsB1$P_VAL<pvthresh,]
+TopResB1<-SigResB1[order(SigResB1$P_VAL), ]
+TopResB1 <- merge(TopResB1,annot.df[,c("Name","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
+TopResB1<-TopResB1[order(TopResB1$P_VAL),]
+dim(all.resultsB1)
+dim(SigResB1)
+write.table(TopResB1, "PACE_EPIC_ModelB1_19-05_TopResults.txt",na="NA")
+
+SigResC1<-all.resultsC1[all.resultsC1$P_VAL<pvthresh,]
+TopResC1<-SigResC1[order(SigResC1$P_VAL), ]
+TopResC1 <- merge(TopResC1,annot.df[,c("Name","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
+TopResC1<-TopResC1[order(TopResC1$P_VAL),]
+dim(all.resultsC1)
+dim(SigResC1)
+write.table(TopResC1, "PACE_EPIC_ModelC1_19-05_TopResults.txt",na="NA")
+
+SigResD1<-all.resultsD1[all.resultsD1$P_VAL<pvthresh,]
+TopResD1<-SigResD1[order(SigResD1$P_VAL), ]
+TopResD1 <- merge(TopResD1,annot.df[,c("Name","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
+TopResD1<-TopResD1[order(TopResD1$P_VAL),]
+dim(all.resultsD1)
+dim(SigResD1)
+write.table(TopResD1, "PACE_EPIC_ModelD1_19-05_TopResults.txt",na="NA")
+
+SigResA2<-all.resultsA2[all.resultsA2$P_VAL<pvthresh,]
+TopResA2<-SigResA2[order(SigResA2$P_VAL), ]
+TopResA2 <- merge(TopResA2,annot.df[,c("Name","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
+TopResA2<-TopResA2[order(TopResA2$P_VAL),]
+dim(all.resultsA2)
+dim(SigResA2)
+write.table(TopResA2, "PACE_EPIC_ModelA2_15-08_TopResults.txt",na="NA")
+
+
+SigResB2<-all.resultsB2[all.resultsB2$P_VAL<pvthresh,]
+TopResB2<-SigResB2[order(SigResB2$P_VAL), ]
+TopResB2 <- merge(TopResB2,annot.df[,c("Name","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
+TopResB2<-TopResB2[order(TopResB2$P_VAL),]
+dim(all.resultsB2)
+dim(SigResB2)
+write.table(TopResB2, "PACE_EPIC_ModelB2_19-05_TopResults.txt",na="NA")
+
+
+SigResC2<-all.resultsC2[all.resultsC2$P_VAL<pvthresh,]
+TopResC2<-SigResC2[order(SigResC2$P_VAL), ]
+TopResC2 <- merge(TopResC2,annot.df[,c("Name","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
+TopResC2<-TopResC2[order(TopResC2$P_VAL),]
+dim(all.resultsC2)
+dim(SigResC2)
+write.table(TopResC2, "PACE_EPIC_ModelC2_19-05_TopResults.txt",na="NA")
+
+
+SigResD2<-all.resultsD2[all.resultsD2$P_VAL<pvthresh,]
+TopResD2<-SigResD2[order(SigResD2$P_VAL), ]
+TopResD2 <- merge(TopResD2,annot.df[,c("Name","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
+TopResD2<-TopResD2[order(TopResD2$P_VAL),]
+dim(all.resultsD2)
+dim(SigResD2)
+write.table(TopResD2, "PACE_EPIC_ModelD2_19-05_TopResults.txt",na="NA")
+
+
+SigResA3<-all.resultsA3[all.resultsA3$P_VAL<pvthresh,]
+TopResA3<-SigResA3[order(SigResA3$P_VAL), ]
+TopResA3 <- merge(TopResA3,annot.df[,c("Name","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
+TopResA3<-TopResA3[order(TopResA3$P_VAL),]
+dim(all.resultsA3)
+dim(SigResA3)
+write.table(TopResA3, "PACE_EPIC_ModelA3_15-08_TopResults.txt",na="NA")
+
+SigResB3<-all.resultsB3[all.resultsB3$P_VAL<pvthresh,]
+TopResB3<-SigResB3[order(SigResB3$P_VAL), ]
+TopResB3 <- merge(TopResB3,annot.df[,c("Name","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
+TopResB3<-TopResB3[order(TopResB3$P_VAL),]
+dim(all.resultsB3)
+dim(SigResB3)
+write.table(TopResB3, "PACE_EPIC_ModelB3_19-05_TopResults.txt",na="NA")
+
+SigResA4<-all.resultsA4[all.resultsA4$P_VAL<pvthresh,]
+TopResA4<-SigResA4[order(SigResA4$P_VAL), ]
+TopResA4 <- merge(TopResA4,annot.df[,c("Name","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
+TopResA4<-TopResA4[order(TopResA4$P_VAL),]
+dim(all.resultsA4)
+dim(SigResA4)
+write.table(TopResA4, "PACE_EPIC_ModelA4_15-08_TopResults.txt",na="NA")
+
+SigResB4<-all.resultsB4[all.resultsB4$P_VAL<pvthresh,]
+TopResB4<-SigResB4[order(SigResB4$P_VAL), ]
+TopResB4 <- merge(TopResB4,annot.df[,c("Name","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
+TopResB4<-TopResB4[order(TopResB4$P_VAL),]
+dim(all.resultsB4)
+dim(SigResB4)
+write.table(TopResB4, "PACE_EPIC_ModelB4_19-05_TopResults.txt",na="NA")
+
+################################################################################
+#Comparing significant results with other papers significant results
+
+matchingdata<-identical(SigResA4&probeID, other_data)
+SigResA4[matchingdata,]
+
+################################################################################
+
+# remove na !!
+Topresults <- Reduce(function(...) merge(..., all=T), list(TopResA1,TopResA2,TopResA3,TopResA4,TopResB1,TopResB2,TopResB3, TopResB4, TopResC1, TopResC2, TopResD1, TopResD2))
+
+Topresults_list<-unique(Topresults$probeID)
+
+write.table(paste(unlist(Topresults_list), collapse="\n"), "PACE_EPIC_Top_Results_19-05_.txt",na="NA")
+
+
+Topresults_list_UCSC<-unique(Topresults$UCSC_RefGene_Name)
+
+Topresults_list_UCSC<-unique(sapply(Topresults_list_UCSC, function(x) x[1]))
+
+write.table(paste(unlist(Topresults_list_UCSC), collapse="\n"), "PACE_EPIC_Top_Results_19-05_UCSC.txt",na="NA")
+
