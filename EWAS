@@ -208,7 +208,9 @@ fnbetas.adj.OG<-fnbetas.adj
 
 PHENO<-pheno.no2f
 
-### REMOVE THE INDIVIDUALS WITH MISSING INFORMATION 
+### REMOVE THE INDIVIDUALS WITH MISSING INFORMATION OR DUPLICATES
+
+PHENO<-PHENO[-which(duplicated(PHENO[,c(2:3,8:15)], fromLast = TRUE)),]
 fnbetas.adj<-fnbetas.adj.OG[,(colnames(fnbetas.adj.OG)  %in% PHENO$Basename)]
 omegas<-omegas.OG[(rownames(omegas.OG)  %in% PHENO$Basename),]
 
@@ -228,9 +230,9 @@ identical(colnames(fnbetas.adj), rownames(omegas)) ###True
 
 
 # Check the dimention of the N to be consistent between the datasets
-dim(omegas)      #      154   3      -> Samples in Rows    
-dim(fnbetas.adj) #   478434   154    -> Samples in Columns 
-dim(PHENO)       #      154   86     -> Samples in Rows    
+dim(omegas)      #        
+dim(fnbetas.adj) #  
+dim(PHENO)       #      
 
 # The Size of N match between the datasets and is in the same order. 
 
@@ -278,9 +280,9 @@ beta_matrix = t(fnbetas.adj2)
 # omegas
 # Ensure CellMix matrix matches methylation beta-value matrix and other phenotype data
 table(ifelse(rownames(omegas)==PHENO$Basename,"MATCHED","Not Matched"))
-#MATCHED 168
+#MATCHED 1346
 table(ifelse(rownames(omegas)==rownames(beta_matrix),"MATCHED","Not Matched"))
-#MATCHED 168 
+#MATCHED 346
 
 
 #################################################################################
@@ -292,14 +294,8 @@ table(ifelse(rownames(omegas)==rownames(beta_matrix),"MATCHED","Not Matched"))
 
 #################################################################################
 #Model A1
-#Methylation = pregnancy NO2 levels + maternal age + child sex + parity + 
-#maternal education + maternal smoking during pregnancy + neighborhood SES + 
-#season of conception + ancestry (+ selection)
-
 
 #### Modeling with covariate adjustment
-
-#Model A1.   ######### ANCESTRY?
 
 #Add function for running the model 
 RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X5, X6, X7, X8, X9) {
@@ -313,7 +309,10 @@ RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X5, X6, X7, X8,
 
 #Run adjusted MWAS
 
-# Variables in the model
+# Variables in the model A1
+#Methylation = pregnancy NO2 levels + maternal age + child sex + parity + 
+#maternal education + maternal smoking during pregnancy + neighborhood SES + 
+#season of conception + ancestry (+ cohort)
 
 system.time(ind.resA1 <- mclapply(setNames(seq_len(ncol(beta_matrix)), dimnames(beta_matrix)[[2]]), RLMtest, meth_matrix=beta_matrix, 
                                  exposure=PHENO[,3] # EXPOSURE (No2 during all pregnancy)  
@@ -326,10 +325,8 @@ system.time(ind.resA1 <- mclapply(setNames(seq_len(ncol(beta_matrix)), dimnames(
                                  , X7=PHENO[,14]	# Season of conception
                                  , X8=PHENO[,15]	# Ethnicity  
                                  , X9=PHENO[,2]	  #  Cohort
-                                 
 ))
 Sys.time()
-
 
 #Process covariate adjusted results
 setattr(ind.resA1, 'class', 'data.frame')
@@ -350,7 +347,6 @@ lambdaA1 = qchisq(median(all.resultsA1$P_VAL,na.rm=T), df = 1, lower.tail = F)/
 NA1 = nrow(beta_matrix) #make sure that this is the sample size of the analysis (no missings in covariates)
 
 #Q-Q plots
-
 pdf("PACE_EPIC_ModelA1_QQ_Plot_30-08f.pdf")
 qq(all.resultsA1$P_VAL,main="PACE_EPIC_QQ-plot")
 dev.off()
@@ -369,7 +365,7 @@ gzip("PACE_EPIC_ModelA1_30-08f.txt")
 
 #### Modeling with covariate adjustment
 
-#Model A2. ## repeat to check smoking as new model
+#Model A2 
 
 #Add function for running the model 
 RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X5, X6, X7, X8, X9, cell1, cell2, cell3, cell4, cell5, cell6, cell7) {
@@ -443,6 +439,7 @@ PHENO<-pheno.pm25f
 
 ### REMOVE THE INDIVIDUALS WITH MISSING INFORMATION 
 
+PHENO<-PHENO[-which(duplicated(PHENO[,c(2,5,8:15)], fromLast = TRUE)),]
 fnbetas.adj<-fnbetas.adj.OG[,(colnames(fnbetas.adj.OG)  %in% PHENO$Basename)]
 omegas<-omegas.OG[(rownames(omegas.OG)  %in% PHENO$Basename),]
 
@@ -477,7 +474,6 @@ Log<-OutlierResults[[2]]
 
 #transpose betas so that rows are samples and columns are probes
 beta_matrix = t(fnbetas.adj2)
-
 
 # omegas
 # Ensure CellMix matrix matches methylation beta-value matrix and other phenotype data
@@ -628,6 +624,7 @@ PHENO<-pheno.absf
 
 ### REMOVE THE INDIVIDUALS WITH MISSING INFORMATION 
 
+PHENO<-PHENO[-which(duplicated(PHENO[,c(2,6,8:15)], fromLast = TRUE)),]
 fnbetas.adj<-fnbetas.adj.OG[,(colnames(fnbetas.adj.OG)  %in% PHENO$Basename)]
 omegas<-omegas.OG[(rownames(omegas.OG)  %in% PHENO$Basename),]
 
@@ -819,9 +816,8 @@ PHENO<-pheno.pbf
 
 ### REMOVE THE INDIVIDUALS WITH MISSING INFORMATION 
 
+PHENO<-PHENO[-which(duplicated(PHENO[,c(2,7,8:15)], fromLast = TRUE)),]
 fnbetas.adj<-fnbetas.adj.OG[,(colnames(fnbetas.adj.OG)  %in% PHENO$Basename)]
-
-
 omegas<-omegas.OG[(rownames(omegas.OG)  %in% PHENO$Basename),]
 
 #########omegas
@@ -907,8 +903,6 @@ system.time(ind.resD1 <- mclapply(setNames(seq_len(ncol(beta_matrix)), dimnames(
 ))
 Sys.time()
 
-
-
 #Process covariate and reffree adjsuted results
 setattr(ind.resD1, 'class', 'data.frame')
 setattr(ind.resD1, "row.names", c(NA_integer_,4))
@@ -927,7 +921,6 @@ lambdaD1 = qchisq(median(all.resultsD1$P_VAL,na.rm=T), df = 1, lower.tail = F)/
 ## Save analysis sample sizes & lambda:
 ND1 = nrow(beta_matrix) #make sure that this is the sample size of the analysis (no missings in covariates)
 
-
 #Q-Q plots
 pdf("PACE_INMA_ModelD1_QQ_Plot_15-08f.pdf")
 qq(all.resultsD1$P_VAL,main="PACE_INMA_QQ-plot")
@@ -936,7 +929,6 @@ dev.off()
 # export table of results
 write.table(all.resultsD1, "PACE_INMA_ModelD1_15-08f.txt",na="NA")
 gzip("PACE_INMA_ModelD1_15-08f.txt")
-
 
 #################################################################################
 #Model D2 
@@ -1009,7 +1001,6 @@ dev.off()
 write.table(all.resultsD2, "PACE_EPIC_ModelD2_15-08f.txt",na="NA")
 gzip("PACE_EPIC_ModelD2_15-08f.txt")
 
-
 #################################################################################
 ## MODELS 3 A and B   ## DOUBLECHECK SMOKING
 
@@ -1020,9 +1011,8 @@ PHENO<-pheno.no2f
 PHENO<-PHENO[PHENO[,12]==0,]
 ### REMOVE THE INDIVIDUALS WITH MISSING INFORMATION 
 
+PHENO<-PHENO[-which(duplicated(PHENO[,c(2,3,8:15)], fromLast = TRUE)),]
 fnbetas.adj<-fnbetas.adj.OG[,(colnames(fnbetas.adj.OG)  %in% PHENO$Basename)]
-
-
 omegas<-omegas.OG[(rownames(omegas.OG)  %in% PHENO$Basename),]
 
 #########omegas
@@ -1142,9 +1132,8 @@ PHENO<-pheno.pm25f
 PHENO<-PHENO[PHENO[,12]==0,]
 ### REMOVE THE INDIVIDUALS WITH MISSING INFORMATION 
 
+PHENO<-PHENO[-which(duplicated(PHENO[,c(2,5,8:15)], fromLast = TRUE)),]
 fnbetas.adj<-fnbetas.adj.OG[,(colnames(fnbetas.adj.OG)  %in% PHENO$Basename)]
-
-
 omegas<-omegas.OG[(rownames(omegas.OG)  %in% PHENO$Basename),]
 
 #########omegas
@@ -1270,6 +1259,8 @@ PHENO<-pheno.no2f
 
 PHENO<-PHENO[PHENO[,15]=="European",] ###### REVISAR
 ### REMOVE THE INDIVIDUALS WITH MISSING INFORMATION 
+
+PHENO<-PHENO[-which(duplicated(PHENO[,c(2,3,8:15)], fromLast = TRUE)),]
 fnbetas.adj<-fnbetas.adj.OG[,(colnames(fnbetas.adj.OG)  %in% PHENO$Basename)]
 omegas<-omegas.OG[(rownames(omegas.OG)  %in% PHENO$Basename),]
 
@@ -1378,8 +1369,10 @@ gzip("PACE_EPIC_ModelA4_15-08f.txt")
 #################################################################################
 PHENO<-pheno.pm25f
 
-PHENO<-PHENO[PHENO[,15]=="European",] ###### REVISAR
+PHENO<-PHENO[PHENO[,15]=="European",]
+
 ### REMOVE THE INDIVIDUALS WITH MISSING INFORMATION 
+PHENO<-PHENO[-which(duplicated(PHENO[,c(2,5,8:15)], fromLast = TRUE)),]
 fnbetas.adj<-fnbetas.adj.OG[,(colnames(fnbetas.adj.OG)  %in% PHENO$Basename)]
 omegas<-omegas.OG[(rownames(omegas.OG)  %in% PHENO$Basename),]
 
