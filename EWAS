@@ -553,7 +553,7 @@ gzip("PACE_EPIC_ModelB1_31-08.txt")
 
 #Add function for running the model 
 RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3,X4,X5,X6,X7,X8,X9,cell1, cell2, cell3, cell4, cell5, cell6, cell7) {
-  mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+X9+cell1+cell2+cell3+cell4+cell5+cell6+cell7,maxit=200))
+  mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+X8+X9+cell1+cell2+cell3+cell4+cell5+cell6+cell7,maxit=200))
   if(class(mod) == "try-error"){
     print(paste("error thrown by column", methcol))
     invisible(rep(NA, 3))
@@ -604,13 +604,13 @@ lambdaB2 = qchisq(median(all.resultsB2$P_VAL,na.rm=T), df = 1, lower.tail = F)/
 NB2 = nrow(beta_matrix) #make sure that this is the sample size of the analysis (no missings in covariates)
 
 #Q-Q plots
-pdf("PACE_EPIC_ModelB2_QQ_Plot_15-08f.pdf")
+pdf("PACE_EPIC_ModelB2_QQ_Plot_31-08.pdf")
 qq(all.resultsB2$P_VAL,main="PACE_EPIC_QQ-plot")
 dev.off()
 
 # export table of results
-write.table(all.resultsB2, "PACE_EPIC_ModelB2_15-08f.txt",na="NA")
-gzip("PACE_EPIC_ModelB2_15-08f.txt")
+write.table(all.resultsB2, "PACE_EPIC_ModelB2_31-08.txt",na="NA")
+gzip("PACE_EPIC_ModelB2_31-08.txt")
 
 #################################################################################
 
@@ -673,8 +673,8 @@ table(ifelse(rownames(omegas)==rownames(beta_matrix),"MATCHED","Not Matched"))
 #### Modeling with covariate and cell-mix adjustment
 
 #Add function for running the model 
-RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X5, X6, X7, X8 ) {
-  mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7,maxit=200))
+RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X5, X6, X7, X8) {
+  mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+X8,maxit=200))
   if(class(mod) == "try-error"){
     print(paste("error thrown by column", methcol))
     invisible(rep(NA, 3))
@@ -694,7 +694,6 @@ system.time(ind.resC1 <- mclapply(setNames(seq_len(ncol(beta_matrix)), dimnames(
                                   , X6=PHENO[,13]	# Neighborhood SES
                                   , X7=PHENO[,14]	# Season of conception
                                   , X8=PHENO[,15]	# ancestry  
-                                  #, X9=PHENO[,2]	#  Cohort  Es nomes sabadell
 ))
 Sys.time()
 
@@ -717,13 +716,13 @@ lambdaC1 = qchisq(median(all.resultsC1$P_VAL,na.rm=T), df = 1, lower.tail = F)/
 NC1 = nrow(beta_matrix) #make sure that this is the sample size of the analysis (no missings in covariates)
 
 #Q-Q plots
-pdf("PACE_EPIC_ModelC1_QQ_Plot_15-08f.pdf")
+pdf("PACE_EPIC_ModelC1_QQ_Plot_31-08.pdf")
 qq(all.resultsC1$P_VAL,main="PACE_EPIC_QQ-plot")
 dev.off()
 
 # export table of results
-write.table(all.resultsC1, "PACE_EPIC_ModelC1_15-08f.txt",na="NA")
-gzip("PACE_EPIC_ModelC1_15-08f.txt")
+write.table(all.resultsC1, "PACE_EPIC_ModelC1_31-08.txt",na="NA")
+gzip("PACE_EPIC_ModelC1_31-08.txt")
 
 #################################################################################
 #Model C2 
@@ -737,7 +736,7 @@ gzip("PACE_EPIC_ModelC1_15-08f.txt")
 #Add function for running the model 
 
 RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X5, X6, X7, X8, cell1, cell2, cell3,cell4,cell5,cell6,cell7) {
-  mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+cell1+cell2+cell3+cell4+cell5+cell6+cell7,maxit=200))
+  mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+X8+cell1+cell2+cell3+cell4+cell5+cell6+cell7,maxit=200))
   if(class(mod) == "try-error"){
     print(paste("error thrown by column", methcol))
     invisible(rep(NA, 3))
@@ -758,7 +757,6 @@ system.time(ind.resC2 <- mclapply(setNames(seq_len(ncol(beta_matrix)), dimnames(
                                   , X6=PHENO[,13]	# neighbourhood SES 
                                   , X7=PHENO[,14]	# Season of conception
                                   , X8=PHENO[,15]	# ancestry  
-                                  #, X9=PHENO[,2]	#  Cohort   nomes sabadell
                                   , cell1 = omegas[,1]
                                   , cell2 = omegas[,2]
                                   , cell3 = omegas[,3]
@@ -862,7 +860,7 @@ table(ifelse(rownames(omegas)==rownames(beta_matrix),"MATCHED","Not Matched"))
 #Add function for running the model 
 
 RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3,X4,X5,X6,X7,X8) {
-  mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7,maxit=200))
+  mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+X8,maxit=200))
   if(class(mod) == "try-error"){
     print(paste("error thrown by column", methcol))
     invisible(rep(NA, 3))
@@ -883,7 +881,6 @@ system.time(ind.resD1 <- mclapply(setNames(seq_len(ncol(beta_matrix)), dimnames(
                                   , X6=PHENO[,13]	# Neighborhood SES
                                   , X7=PHENO[,14]	# Season of conception
                                   , X8=PHENO[,15]	# ancestry  
-                                  #, X9=PHENO[,2]	#  Cohort nomes es valencia
 ))
 Sys.time()
 
@@ -906,13 +903,13 @@ lambdaD1 = qchisq(median(all.resultsD1$P_VAL,na.rm=T), df = 1, lower.tail = F)/
 ND1 = nrow(beta_matrix) #make sure that this is the sample size of the analysis (no missings in covariates)
 
 #Q-Q plots
-pdf("PACE_INMA_ModelD1_QQ_Plot_15-08f.pdf")
+pdf("PACE_INMA_ModelD1_QQ_Plot_31-08.pdf")
 qq(all.resultsD1$P_VAL,main="PACE_INMA_QQ-plot")
 dev.off()
 
 # export table of results
-write.table(all.resultsD1, "PACE_INMA_ModelD1_15-08f.txt",na="NA")
-gzip("PACE_INMA_ModelD1_15-08f.txt")
+write.table(all.resultsD1, "PACE_INMA_ModelD1_31-08.txt",na="NA")
+gzip("PACE_INMA_ModelD1_31-08.txt")
 
 #################################################################################
 #Model D2 
@@ -926,7 +923,7 @@ gzip("PACE_INMA_ModelD1_15-08f.txt")
 #Add function for running the model 
 
 RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X5, X6, X7, X8, cell1, cell2, cell3, cell4, cell5, cell6, cell7) {
-  mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+cell1+cell2+cell3+cell4+cell5+cell6+cell7,maxit=200))
+  mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+X8+cell1+cell2+cell3+cell4+cell5+cell6+cell7,maxit=200))
   if(class(mod) == "try-error"){
     print(paste("error thrown by column", methcol))
     invisible(rep(NA, 3))
@@ -948,7 +945,6 @@ system.time(ind.resD2 <- mclapply(setNames(seq_len(ncol(beta_matrix)), dimnames(
                                   , X6=PHENO[,13]	# neighbourhood SES 
                                   , X7=PHENO[,14]	# Season of conception
                                   , X8=PHENO[,15]	# ancestry  
-                                  #, X9=PHENO[,2]	#  Cohort  es nomes valencia
                                   , cell1 = omegas[,1]
                                   , cell2 = omegas[,2]
                                   , cell3 = omegas[,3]
@@ -978,13 +974,13 @@ lambdaD2 = qchisq(median(all.resultsD2$P_VAL,na.rm=T), df = 1, lower.tail = F)/
 ND2 = nrow(beta_matrix) #make sure that this is the sample size of the analysis (no missings in covariates)
 
 #Q-Q plots
-pdf("PACE_EPIC_ModelD2_QQ_Plot_15-08f.pdf")
+pdf("PACE_EPIC_ModelD2_QQ_Plot_31-08.pdf")
 qq(all.resultsD2$P_VAL,main="PACE_EPIC_QQ-plot")
 dev.off()
 
 # export table of results
-write.table(all.resultsD2, "PACE_EPIC_ModelD2_15-08f.txt",na="NA")
-gzip("PACE_EPIC_ModelD2_15-08f.txt")
+write.table(all.resultsD2, "PACE_EPIC_ModelD2_31-08.txt",na="NA")
+gzip("PACE_EPIC_ModelD2_31-08.txt")
 
 #################################################################################
 ## MODELS 3 A and B   ## DOUBLECHECK SMOKING
@@ -1151,16 +1147,16 @@ Log<-OutlierResults[[2]]
 #save(Log,file="PACE_INMA_Outlier_log.Rdata") #save log
 
 #transpose betas so that rows are samples and columns are probes
-beta_matrix_NSP = t(fnbetas.adj2)
+beta_matrix = t(fnbetas.adj2)
 
-PHENO_NSP<-PHENO[match(rownames(omegas_NSP),as.vector(PHENO$Basename)), ]
+PHENO<-PHENO[match(rownames(omegas),as.vector(PHENO$Basename)), ]
 # omegas
 # Ensure CellMix matrix matches methylation beta-value matrix and other phenotype data
-table(ifelse(rownames(omegas)==PHENO_NSP$Basename,"MATCHED","Not Matched"))
+table(ifelse(rownames(omegas)==PHENO$Basename,"MATCHED","Not Matched"))
 #MATCHED 168
-table(ifelse(rownames(omegas)==rownames(beta_matrix_NSP),"MATCHED","Not Matched"))
+table(ifelse(rownames(omegas)==rownames(beta_matrix),"MATCHED","Not Matched"))
  
-omegas_SNP<-omegas
+
 #################################################################################
 #Model B3 
 
@@ -1182,23 +1178,23 @@ RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3,X4, X5, X6, X7, X8, 
 
 #Run adjusted MWAS
 # Variables in the model  72,84,80,87,29,88,89,91,52) 41
-system.time(ind.resB3 <- mclapply(setNames(seq_len(ncol(beta_matrix_NSP)), dimnames(beta_matrix_NSP)[[2]]), RLMtest, meth_matrix=beta_matrix_NSP, 
-                                 exposure=PHENO_NSP[,5] #EXPOSURE (PM2.5)
-                                 , X1=PHENO_NSP[,8]	# Maternal age -- 18 <-"mage.x"
-                                 , X2=PHENO_NSP[,9]	# Child sex
-                                 , X3=PHENO_NSP[,10]	# Parity -- 88 <-"parity" 
-                                 , X4=PHENO_NSP[,11]	# Maternal education  -- 78 <-"estudios3c"
-                                 , X5=PHENO_NSP[,13]	# neighbourhood SES
-                                 , X6=PHENO_NSP[,14]	# Season of conception
-                                 , X7=PHENO_NSP[,15]	# ancestry
-                                 , X8=PHENO_NSP[,2]	  # cohort
-                                 , Cell1 = omegas_NSP[,1]
-                                 , Cell2 = omegas_NSP[,2]
-                                 , Cell3 = omegas_NSP[,3]
-                                 , Cell4 = omegas_NSP[,4]
-                                 , Cell5 = omegas_NSP[,5]
-                                 , Cell6 = omegas_NSP[,6]
-                                 , Cell7 = omegas_NSP[,7]
+system.time(ind.resB3 <- mclapply(setNames(seq_len(ncol(beta_matrix)), dimnames(beta_matrix)[[2]]), RLMtest, meth_matrix=beta_matrix, 
+                                 exposure=PHENO[,5] #EXPOSURE (PM2.5)
+                                 , X1=PHENO[,8]	# Maternal age -- 18 <-"mage.x"
+                                 , X2=PHENO[,9]	# Child sex
+                                 , X3=PHENO[,10]	# Parity -- 88 <-"parity" 
+                                 , X4=PHENO[,11]	# Maternal education  -- 78 <-"estudios3c"
+                                 , X5=PHENO[,13]	# neighbourhood SES
+                                 , X6=PHENO[,14]	# Season of conception
+                                 , X7=PHENO[,15]	# ancestry
+                                 , X8=PHENO[,2]	  # cohort
+                                 , Cell1 = omegas[,1]
+                                 , Cell2 = omegas[,2]
+                                 , Cell3 = omegas[,3]
+                                 , Cell4 = omegas[,4]
+                                 , Cell5 = omegas[,5]
+                                 , Cell6 = omegas[,6]
+                                 , Cell7 = omegas[,7]
                                  
                                  
 ))
@@ -1220,7 +1216,7 @@ rm(probelistnamesB3, ind.resB3)
 lambdaB3 = qchisq(median(all.resultsB3$P_VAL,na.rm=T), df = 1, lower.tail = F)/
   qchisq(0.5, 1)
 ## Save analysis sample sizes & lambda:
-NB3 = nrow(beta_matrix_NSP) #make sure that this is the sample size of the analysis (no missings in covariates)
+NB3 = nrow(beta_matrix) 
 
 #Q-Q plots
 pdf("PACE_EPIC_ModelB3_QQ_Plot_15-08f.pdf")
@@ -1230,7 +1226,6 @@ dev.off()
 # export table of results
 write.table(all.resultsB3, "PACE_EPIC_ModelB3_15-08f.txt",na="NA")
 gzip("PACE_EPIC_ModelB3_15-08f.txt")
-
 
 #################################################################################
 ## MODELS 4 A and B (Sensitivity analysis models restricted to European ancestry using NO2 and PM2.5)
@@ -1291,7 +1286,7 @@ table(ifelse(rownames(omegas)==rownames(beta_matrix),"MATCHED","Not Matched"))
 #### Modeling with covariate adjustment
 
 #Add function for running the model (4 covariates)
-RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X5, X6, X7, X8, cell1, cell2, cell3, cell4, cell5, cell6, cell7) {
+RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X5, X6, X7, cell1, cell2, cell3, cell4, cell5, cell6, cell7) {
   mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+cell1+cell2+cell3+cell4+cell5+cell6+cell7,maxit=200))
   if(class(mod) == "try-error"){
     print(paste("error thrown by column", methcol))
@@ -1302,23 +1297,22 @@ RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X5, X6, X7, X8,
 
 #Run adjusted MWAS
 # Variables in the model  
-system.time(ind.resA4 <- mclapply(setNames(seq_len(ncol(beta_matrix_EUR)), dimnames(beta_matrix_EUR)[[2]]), RLMtest, meth_matrix=beta_matrix_EUR, 
-                                  exposure=PHENO_EUR[,3] #EXPOSURE (NO2)--  69 <-"PHENO_EUR$e3_no2_ratio_preg"
-                                  , X1=PHENO_EUR[,8]	# Maternal age -- 18 <-"mage.x"
-                                  , X2=PHENO_EUR[,9]	# Child sex
-                                  , X3=PHENO_EUR[,10]	# Parity -- 88 <-"parity" 
-                                  , X4=PHENO_EUR[,11]	# Maternal education  -- 78 <-"estudios3c"
-                                  , X5=PHENO_EUR[,13]	# neighbourhood SES
-                                  , X6=PHENO_EUR[,14]	# Season of conception
-                                  , X7=PHENO_EUR[,2]	# (selection)
-                                  , X8=PHENO_EUR[,15]	# ancestry
-                                  , cell1 = omegas_EUR[,1]# Houseman free r.e. -- Omegas[,1]
-                                  , cell2 = omegas_EUR[,2]# Houseman free r.e. -- Omegas[,2]
-                                  , cell3 = omegas_EUR[,3]# Houseman free r.e. -- Omegas[,3]
-                                  , cell4 = omegas_EUR[,4]
-                                  , cell5 = omegas_EUR[,5]
-                                  , cell6 = omegas_EUR[,6]
-                                  , cell7 = omegas_EUR[,7]
+system.time(ind.resA4 <- mclapply(setNames(seq_len(ncol(beta_matrix)), dimnames(beta_matrix)[[2]]), RLMtest, meth_matrix=beta_matrix, 
+                                  exposure=PHENO[,3] #EXPOSURE (NO2)--  69 <-"PHENO_EUR$e3_no2_ratio_preg"
+                                  , X1=PHENO[,8]	# Maternal age -- 18 <-"mage.x"
+                                  , X2=PHENO[,9]	# Child sex
+                                  , X3=PHENO[,10]	# Parity -- 88 <-"parity" 
+                                  , X4=PHENO[,11]	# Maternal education  -- 78 <-"estudios3c"
+                                  , X5=PHENO[,13]	# neighbourhood SES
+                                  , X6=PHENO[,14]	# Season of conception
+                                  , X7=PHENO[,2]	# (cohort)
+                                  , cell1 = omegas[,1]# Houseman free r.e. -- Omegas[,1]
+                                  , cell2 = omegas[,2]# Houseman free r.e. -- Omegas[,2]
+                                  , cell3 = omegas[,3]# Houseman free r.e. -- Omegas[,3]
+                                  , cell4 = omegas[,4]
+                                  , cell5 = omegas[,5]
+                                  , cell6 = omegas[,6]
+                                  , cell7 = omegas[,7]
 ))
 Sys.time()
 
@@ -1338,16 +1332,16 @@ rm(probelistnamesA4, ind.resA4)
 lambdaA4 = qchisq(median(all.resultsA4$P_VAL,na.rm=T), df = 1, lower.tail = F)/
   qchisq(0.5, 1)
 ## Save analysis sample sizes & lambda:
-NA4 = nrow(beta_matrix_EUR) #make sure that this is the sample size of the analysis (no missings in covariates)
+NA4 = nrow(beta_matrix) #make sure that this is the sample size of the analysis (no missings in covariates)
 
 #Q-Q plots
-pdf("PACE_EPIC_ModelA4_QQ_Plot_15-08f.pdf")
+pdf("PACE_EPIC_ModelA4_QQ_Plot_31-08.pdf")
 qq(all.resultsA4$P_VAL,main="PACE_EPIC_QQ-plot")
 dev.off()
 
 # export table of results
-write.table(all.resultsA4, "PACE_EPIC_ModelA4_15-08f.txt",na="NA")
-gzip("PACE_EPIC_ModelA4_15-08f.txt")
+write.table(all.resultsA4, "PACE_EPIC_ModelA4_31-08.txt",na="NA")
+gzip("PACE_EPIC_ModelA4_31-08.txt")
 
 #################################################################################
 PHENO<-pheno.pm25f
@@ -1392,9 +1386,7 @@ table(ifelse(rownames(omegas)==PHENO$Basename,"MATCHED","Not Matched"))
 table(ifelse(rownames(omegas)==rownames(beta_matrix),"MATCHED","Not Matched"))
 #MATCHED 168 
 
-PHENO_EUR<-PHENO
-omegas_EUR<-omegas
-beta_matrix_EUR<-beta_matrix
+
 #################################################################################
 #Model B4 
 
@@ -1405,7 +1397,7 @@ beta_matrix_EUR<-beta_matrix
 #### Modeling with covariate adjustment
 
 #Add function for running the model (4 covariates)
-RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3,X4, X5, X6,X7,X8, Cell1, Cell2, Cell3, Cell4, Cell5, Cell6, Cell7) {
+RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3,X4, X5, X6,X7, Cell1, Cell2, Cell3, Cell4, Cell5, Cell6, Cell7) {
   mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+Cell1+Cell2+Cell3+Cell4+Cell5+Cell6+Cell7,maxit=200))
   if(class(mod) == "try-error"){
     print(paste("error thrown by column", methcol))
@@ -1416,23 +1408,22 @@ RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3,X4, X5, X6,X7,X8, Ce
 
 #Run adjusted MWAS
 # Variables in the model colnames(PHENO)[c(72,84,80,87,29,88,89,91,52)] 
-system.time(ind.resB4 <- mclapply(setNames(seq_len(ncol(beta_matrix_EUR)), dimnames(beta_matrix_EUR)[[2]]), RLMtest, meth_matrix=beta_matrix_EUR, 
-                                  exposure=PHENO_EUR[,5] #EXPOSURE (PM2.5)
-                                  , X1=PHENO_EUR[,8]	# Maternal age -- 18 <-"mage.x"
-                                  , X2=PHENO_EUR[,9]	# child sex
-                                  , X3=PHENO_EUR[,10]	# Parity -- 88 <-"parity"
-                                  , X4=PHENO_EUR[,11]	# Maternal education  -- 78 <-"estudios3c"
-                                  , X5=PHENO_EUR[,13]	# Neighborhood ses	
-                                  , X6=PHENO_EUR[,14]	# season of conception	
-                                  , X7=PHENO_EUR[,2]	# (selection)	
-                                  , X8=PHENO_EUR[,15]	# (selection)
-                                  , Cell1 = omegas_EUR[,1]
-                                  , Cell2 = omegas_EUR[,2]
-                                  , Cell3 = omegas_EUR[,3]
-                                  , Cell4 = omegas_EUR[,4]
-                                  , Cell5 = omegas_EUR[,5]
-                                  , Cell6 = omegas_EUR[,6]
-                                  , Cell7 = omegas_EUR[,7]
+system.time(ind.resB4 <- mclapply(setNames(seq_len(ncol(beta_matrix)), dimnames(beta_matrix)[[2]]), RLMtest, meth_matrix=beta_matrix, 
+                                  exposure=PHENO[,5] #EXPOSURE (PM2.5)
+                                  , X1=PHENO[,8]	# Maternal age -- 18 <-"mage.x"
+                                  , X2=PHENO[,9]	# child sex
+                                  , X3=PHENO[,10]	# Parity -- 88 <-"parity"
+                                  , X4=PHENO[,11]	# Maternal education  -- 78 <-"estudios3c"
+                                  , X5=PHENO[,13]	# Neighborhood ses	
+                                  , X6=PHENO[,14]	# season of conception	
+                                  , X7=PHENO[,2]	# (cohort)	
+                                  , Cell1 = omegas[,1]
+                                  , Cell2 = omegas[,2]
+                                  , Cell3 = omegas[,3]
+                                  , Cell4 = omegas[,4]
+                                  , Cell5 = omegas[,5]
+                                  , Cell6 = omegas[,6]
+                                  , Cell7 = omegas[,7]
 ))
 Sys.time()
 
@@ -1452,16 +1443,16 @@ rm(probelistnamesB4, ind.resB4)
 lambdaB4 = qchisq(median(all.resultsB4$P_VAL,na.rm=T), df = 1, lower.tail = F)/
   qchisq(0.5, 1)
 ## Save analysis sample sizes & lambda:
-NB4 = nrow(beta_matrix_EUR) #make sure that this is the sample size of the analysis (no missings in covariates)
+NB4 = nrow(beta_matrix) #make sure that this is the sample size of the analysis (no missings in covariates)
 
 #Q-Q plots
-pdf("PACE_EPIC_ModelB4_QQ_Plot_15-08f.pdf")
+pdf("PACE_EPIC_ModelB4_QQ_Plot_31-08.pdf")
 qq(all.resultsB4$P_VAL,main="PACE_EPIC_QQ-plot")
 dev.off()
 
 # export table of results
-write.table(all.resultsB4, "PACE_EPIC_ModelB4_15-08f.txt",na="NA")
-gzip("PACE_EPIC_ModelB4_15-08f.txt")
+write.table(all.resultsB4, "PACE_EPIC_ModelB4_31-08.txt",na="NA")
+gzip("PACE_EPIC_ModelB4_31-08.txt")
 
 # Export lambda for each
 write.table(data.frame(Model = c("A1","B1","C1","D1","A2","B2","C2","D2","A3","B3","A4","B4"), Lambda = c(lambdaA1,lambdaB1,lambdaC1,lambdaD1,lambdaA2,lambdaB2,lambdaC2,lambdaD2,lambdaA3,lambdaB3,lambdaA4,lambdaB4), N=c(NA1,NB1,NC1,ND1,NA2,NB2,NC2,ND2,NA3,NB3,NA4,NB4)), "PACE_EPIC_Lambdas_15-08.txt", na="NA")
