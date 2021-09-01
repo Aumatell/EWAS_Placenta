@@ -22,9 +22,12 @@ library(parallel)
 library(haven) #To load .dta data
 library(qqman) # to print qq plot
 library(R.utils) # To zip files
+
+
 library(limma) #venn diagrams
 library(table1) #Descriptive statistics
 library(htmltools) #save html
+library(EASIER) # annotation and functional enrichment of the placenta
 #################################################################################
 # load air polution data  and pd (methilation) data
 
@@ -84,7 +87,7 @@ dim(PHENO)  #  168 86
 
 PHENO.OG<-PHENO
 
-for (i in c(7,45,29,88,91,52,87)){ #80,87,88,91,29,91,90,82,85,86,78
+for (i in c(7,45,29,52,78,80,82,85,86,87,88,90,91)){ 
   PHENO[,i]<-as.factor(PHENO[,i])
 }
 
@@ -126,23 +129,16 @@ table(pheno.no2f$Basename%in%pheno.pm25f$Basename)#TRUE
 table(pheno.pbf$Basename%in%pheno.pm25f$Basename)#TRUE
 #
 
-dim(PHENO.OG)     # 168  86
+dim(PHENO.OG)     #  389 86
 dim(pheno.pm25f)    # 350  86
 
-
-PHENO<-pheno.pm25f
-PHENODESc<-PHENO.OG[rownames(PHENO),]
+PHENO<-PHENO[rownames(pheno.pm25f),]
 #################################################################################
 #Step 3 : Descriptive analysis of the data
 
-for (i in c(80,87,88,91,29,91,90,82,85,86,78)){
-  PHENODESc[,i]<-as.factor(PHENODESc[,i])
-}
-
-
-PHENODESc$magecat<-NULL
+PHENO$magecat<-NULL
 magecat<-NULL
-for ( i in as.vector(PHENODESc$mage)){
+for ( i in as.vector(PHENO$mage)){
   if (is.na(i)){
     magecat<-c(magecat,"NA")
   } else if (i < 25){
@@ -153,14 +149,13 @@ for ( i in as.vector(PHENODESc$mage)){
     magecat<-c(magecat,2)
   }
 } 
-PHENODESc$magecat<-magecat
-PHENODESc$Socioeconomic_ISVUR<- PHENODESc[,89]
-tt<-table1(~ e3_no2_ratio_preg + e3_pm10_ratio_preg + e3_pm25_ratio_preg + e3_abs_ratio_preg + pb_exposure + mage + sexo + parity + smok +  conseason + estudios3c.x + Socioeconomic_ISVUR + bs_ga_i + bweight + ga + preterm.y + cesarean + magecat + CSM2 + imcm + imcm4c + ethnic_origin_2c | cohort.fin, data=PHENODESc, overall="Total",  render.continuous=c(.="Mean (SD)", .="Median [Min, Max]", "IQR (Q1 -Q3)"="IQR (Q1 - Q3)"))
-save_html(tt, "EpicDescriptives.html", background = "white", libdir = "lib", lang = "en")
+PHENO$magecat<-magecat
+PHENO$Socioeconomic_ISVUR<- PHENO[,89]
+tt<-table1(~ e3_no2_ratio_preg + e3_pm10_ratio_preg + e3_pm25_ratio_preg + e3_abs_ratio_preg + pb_exposure + mage + sexo + parity + smok +  conseason + estudios3c.x + Socioeconomic_ISVUR + bs_ga_i + bweight + ga + preterm.y + cesarean + magecat + CSM2 + imcm + imcm4c + ethnic_origin_2c | cohort.fin, data=PHENO, overall="Total",  render.continuous=c(.="Mean (SD)", .="Median [Min, Max]", "IQR (Q1 -Q3)"="IQR (Q1 - Q3)"))
+save_html(tt, "EpicDescriptives31-08.html", background = "white", libdir = "lib", lang = "en")
 
 #################################################################################
 #####  Descriptive analysis by cohort
-
 
 #Pollutants missing information
 
@@ -170,8 +165,6 @@ for( i in c(3:7)){
   polnavec$new<-as.numeric(!is.na(PHENO[,i]))
   names(polnavec)[names(polnavec)=="new"] <- colnames(PHENO[i])
 }
-
-colSums(polnavec)
 
 #### Venn diagram per expos
 
@@ -200,9 +193,10 @@ dev.off()
 #################################################################################
 # Step 4:  read omegas
 
-omegas<-read.delim("/home/isglobal.lan/jaumatell/data/WS_INMA/Methylation_INMA/EPIC_placenta/QC_Todd/Final_files/INMA_Pla_EPIC_Slide_Omega.s.txt", header = TRUE, sep = "\t")
+omegas<-read.delim("---", header = TRUE, sep = "\t")
 omegas.OG<-omegas
 fnbetas.adj.OG<-fnbetas.adj
+
 #################################################################################
 # Step 5: order IDs in PHENO, omegas and methylation data
 
@@ -358,14 +352,7 @@ gzip("PACE_EPIC_ModelA1_30-08f.txt")
 #################################################################################
 #Model A2
 
-# Methylation = pregnancy NO2 levels + maternal age + child sex + parity + 
-# maternal education + maternal smoking during pregnancy + neighborhood SES + 
-# season of conception + ancestry + Houseman free reference estimations (+ selection) 
-
-
 #### Modeling with covariate adjustment
-
-#Model A2 
 
 #Add function for running the model 
 RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X5, X6, X7, X8, X9, cell1, cell2, cell3, cell4, cell5, cell6, cell7) {
@@ -380,6 +367,9 @@ RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X5, X6, X7, X8,
 #Run adjusted MWAS
 
 # Variables in the model 
+# Methylation = pregnancy NO2 levels + maternal age + child sex + parity + 
+# maternal education + maternal smoking during pregnancy + neighborhood SES + 
+# season of conception + ancestry + Houseman free reference estimations (+ selection) 
 
 system.time(ind.resA2 <- mclapply(setNames(seq_len(ncol(beta_matrix)), dimnames(beta_matrix)[[2]]), RLMtest, meth_matrix=beta_matrix, 
                                   exposure=PHENO[,3] # EXPOSURE (No2 during all pregnancy)  
@@ -402,7 +392,6 @@ system.time(ind.resA2 <- mclapply(setNames(seq_len(ncol(beta_matrix)), dimnames(
 ))
 Sys.time()
 
-
 #Process covariate adjusted results
 setattr(ind.resA2, 'class', 'data.frame')
 setattr(ind.resA2, "row.names", c(NA_integer_,4))
@@ -422,14 +411,13 @@ lambdaA2 = qchisq(median(all.resultsA2$P_VAL,na.rm=T), df = 1, lower.tail = F)/
 NA2 = nrow(beta_matrix) #make sure that this is the sample size of the analysis (no missings in covariates)
 
 #Q-Q plots
-
-pdf("PACE_EPIC_ModelA2_QQ_Plot_30-08f.pdf")
+pdf("PACE_EPIC_ModelA2_QQ_Plot_31-08.pdf")
 qq(all.resultsA2$P_VAL,main="PACE_EPIC_QQ-plot")
 dev.off()
 
 # export table of results
-write.table(all.resultsA2, "PACE_EPIC_ModelA2_30-08f.txt",na="NA")
-gzip("PACE_EPIC_ModelA2_15-30f.txt")
+write.table(all.resultsA2, "PACE_EPIC_ModelA2_31-08.txt",na="NA")
+gzip("PACE_EPIC_ModelA2_31-08.txt")
 
 #################################################################################
 ## B MODELS 1 and 2 (PM2.5)
@@ -482,12 +470,23 @@ table(ifelse(rownames(omegas)==PHENO$Basename,"MATCHED","Not Matched"))
 table(ifelse(rownames(omegas)==rownames(beta_matrix),"MATCHED","Not Matched"))
 #MATCHED 168 
 
+####### Summarize probes
+
+#function
+descriptives<-function(x){
+  tmp<-c(min(x,na.rm=T),quantile(x,probs=c(.1,.25,.5),na.rm=T),mean(x,na.rm=T), median(x,na.rm=T),sd(x,na.rm=T),quantile(x,probs=c(.75,.90),na.rm=T),max(x,na.rm=T),sum(is.na(x)))
+  names(tmp)[c(1,5:7,10:11)]<-c("Min.","Mean","Median","SD","Max.","NA")
+  return(tmp)
+}
+
+desc<-t(apply(beta_matrix,2,descriptives))
+write.table(desc, "PACE_INMA_CpG_summary_31-08.txt", sep = "\t", col.names = T, row.names = T, append = F, quote=FALSE)
+
 #################################################################################
 #Model B1 
-#Methylation = pregnancy PM2.5 levels + child sex + parity + maternal education +
-# maternal smoking during pregnancy + neighborhood SES + season of conception + ancestry (+ selection)
 
-#### Modeling with covariate and cell-mix adjustment
+#Methylation = pregnancy PM2.5 levels + child sex + parity + maternal education +
+# maternal smoking during pregnancy + neighborhood SES + season of conception + ancestry (+ cohort)
 
 #Add function for running the model 
 
@@ -501,11 +500,9 @@ RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3,X4,X5,X6,X7,X8,X9) {
   cf[2, c("Estimate", "Std. Error", "Pr(>|z|)")]
 }
 
-
 #Run adjusted MWAS
 
 # Variables in the model
-
 system.time(ind.resB1 <- mclapply(setNames(seq_len(ncol(beta_matrix)), dimnames(beta_matrix)[[2]]), RLMtest, meth_matrix=beta_matrix, 
                                  exposure=PHENO[,5] # EXPOSURE   P2.5
                                  , X1=PHENO[,8]	# Maternal age 
@@ -519,8 +516,6 @@ system.time(ind.resB1 <- mclapply(setNames(seq_len(ncol(beta_matrix)), dimnames(
                                  , X9=PHENO[,2]	#  Cohort
 ))
 Sys.time()
-
-
 
 #Process covariate and reffree adjsuted results
 setattr(ind.resB1, 'class', 'data.frame')
@@ -541,18 +536,18 @@ lambdaB1 = qchisq(median(all.resultsB1$P_VAL,na.rm=T), df = 1, lower.tail = F)/
 NB1 = nrow(beta_matrix) #make sure that this is the sample size of the analysis (no missings in covariates)
 
 #Q-Q plots
-pdf("PACE_EPIC_ModelB1_QQ_Plot_15-08f.pdf")
+pdf("PACE_EPIC_ModelB1_QQ_Plot_13-08.pdf")
 qq(all.resultsB1$P_VAL,main="PACE_EPIC_QQ-plot")
 dev.off()
 
 # export table of results
-write.table(all.resultsB1, "PACE_EPIC_ModelB1_15-08f.txt",na="NA")
-gzip("PACE_EPIC_ModelB1_15-08f.txt")
+write.table(all.resultsB1, "PACE_EPIC_ModelB1_31-08.txt",na="NA")
+gzip("PACE_EPIC_ModelB1_31-08.txt")
 
 #################################################################################
 #Model B2 
 #Methylation = pregnancy PM2.5 levels + child sex + parity + maternal education +
-# maternal smoking during pregnancy + neighborhood SES + season of conception + ancestry (+ selection)
+# maternal smoking during pregnancy + neighborhood SES + season of conception + ancestry (+ cohort)
 
 #### Modeling with covariate and cell-mix adjustment
 
@@ -569,7 +564,6 @@ RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3,X4,X5,X6,X7,X8,X9,ce
 
 #Run adjusted MWAS
 
-# Variables in the model 
 system.time(ind.resB2 <- mclapply(setNames(seq_len(ncol(beta_matrix)), dimnames(beta_matrix)[[2]]), RLMtest, meth_matrix=beta_matrix, 
                                   exposure=PHENO[,5] # EXPOSURE   
                                   , X1=PHENO[,8]	# child sex
@@ -690,8 +684,6 @@ RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X5, X6, X7, X8 
 
 #Run adjusted MWAS
 
-# Variables in the model
-
 system.time(ind.resC1 <- mclapply(setNames(seq_len(ncol(beta_matrix)), dimnames(beta_matrix)[[2]]), RLMtest, meth_matrix=beta_matrix, 
                                   exposure=PHENO[,6] # EXPOSURE   PM2.5 abs levels
                                   , X1=PHENO[,8]	# Maternal age 
@@ -705,8 +697,6 @@ system.time(ind.resC1 <- mclapply(setNames(seq_len(ncol(beta_matrix)), dimnames(
                                   #, X9=PHENO[,2]	#  Cohort  Es nomes sabadell
 ))
 Sys.time()
-
-
 
 #Process covariate and reffree adjsuted results
 setattr(ind.resC1, 'class', 'data.frame')
@@ -725,7 +715,6 @@ lambdaC1 = qchisq(median(all.resultsC1$P_VAL,na.rm=T), df = 1, lower.tail = F)/
   qchisq(0.5, 1)
 ## Save analysis sample sizes & lambda:
 NC1 = nrow(beta_matrix) #make sure that this is the sample size of the analysis (no missings in covariates)
-
 
 #Q-Q plots
 pdf("PACE_EPIC_ModelC1_QQ_Plot_15-08f.pdf")
@@ -759,7 +748,6 @@ RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X5, X6, X7, X8,
 
 #Run adjusted MWAS
 
-# Variables in the model 
 system.time(ind.resC2 <- mclapply(setNames(seq_len(ncol(beta_matrix)), dimnames(beta_matrix)[[2]]), RLMtest, meth_matrix=beta_matrix, 
                                   exposure=PHENO[,6] # EXPOSURE   PM2.5 abs levels
                                   , X1=PHENO[,8]	# maternal age
@@ -855,7 +843,6 @@ Log<-OutlierResults[[2]]
 #transpose betas so that rows are samples and columns are probes
 beta_matrix = t(fnbetas.adj2)
 
-
 # omegas
 # Ensure CellMix matrix matches methylation beta-value matrix and other phenotype data
 table(ifelse(rownames(omegas)==PHENO$Basename,"MATCHED","Not Matched"))
@@ -884,10 +871,7 @@ RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3,X4,X5,X6,X7,X8) {
   cf[2, c("Estimate", "Std. Error", "Pr(>|z|)")]
 }
 
-
 #Run adjusted MWAS
-
-# Variables in the model
 
 system.time(ind.resD1 <- mclapply(setNames(seq_len(ncol(beta_matrix)), dimnames(beta_matrix)[[2]]), RLMtest, meth_matrix=beta_matrix, 
                                   exposure=PHENO[,7] # EXPOSURE   black carbon abs
@@ -950,6 +934,7 @@ RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X5, X6, X7, X8,
     cf = coeftest(mod, vcov=vcovHC(mod, type="HC0"))
   cf[2, c("Estimate", "Std. Error", "Pr(>|z|)")]
 }
+
 #Run adjusted MWAS
 
 # Variables in the model  
@@ -1026,10 +1011,8 @@ PHENO <- PHENO[match(colnames(fnbetas.adj),as.vector(PHENO$Basename)), ]
 #Check the order to be the same between Methilation data and pheno data
 identical(colnames(fnbetas.adj), as.character(PHENO$Basename)) ##TRUE
 
-
 #Check the order to be the same in the id's of Methilation data and omegas 
 identical(colnames(fnbetas.adj), rownames(omegas)) ###True
-
 
 # Check the dimention of the N to be consistent between the datasets
 dim(omegas)      #      154   3      -> Samples in Rows    
