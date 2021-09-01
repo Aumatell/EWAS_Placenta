@@ -1286,8 +1286,8 @@ table(ifelse(rownames(omegas)==rownames(beta_matrix),"MATCHED","Not Matched"))
 #### Modeling with covariate adjustment
 
 #Add function for running the model (4 covariates)
-RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X5, X6, X7, cell1, cell2, cell3, cell4, cell5, cell6, cell7) {
-  mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+cell1+cell2+cell3+cell4+cell5+cell6+cell7,maxit=200))
+RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X5, X6, X7, X8, cell1, cell2, cell3, cell4, cell5, cell6, cell7) {
+  mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+X8+cell1+cell2+cell3+cell4+cell5+cell6+cell7,maxit=200))
   if(class(mod) == "try-error"){
     print(paste("error thrown by column", methcol))
     invisible(rep(NA, 3))
@@ -1303,9 +1303,10 @@ system.time(ind.resA4 <- mclapply(setNames(seq_len(ncol(beta_matrix)), dimnames(
                                   , X2=PHENO[,9]	# Child sex
                                   , X3=PHENO[,10]	# Parity -- 88 <-"parity" 
                                   , X4=PHENO[,11]	# Maternal education  -- 78 <-"estudios3c"
-                                  , X5=PHENO[,13]	# neighbourhood SES
-                                  , X6=PHENO[,14]	# Season of conception
-                                  , X7=PHENO[,2]	# (cohort)
+                                  , X5=PHENO[,12]	# Maternal smoking during pregnancy
+                                  , X6=PHENO[,13]	# neighbourhood SES
+                                  , X7=PHENO[,14]	# Season of conception
+                                  , X8=PHENO[,2]	# (cohort)
                                   , cell1 = omegas[,1]# Houseman free r.e. -- Omegas[,1]
                                   , cell2 = omegas[,2]# Houseman free r.e. -- Omegas[,2]
                                   , cell3 = omegas[,3]# Houseman free r.e. -- Omegas[,3]
@@ -1397,8 +1398,8 @@ table(ifelse(rownames(omegas)==rownames(beta_matrix),"MATCHED","Not Matched"))
 #### Modeling with covariate adjustment
 
 #Add function for running the model (4 covariates)
-RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3,X4, X5, X6,X7, Cell1, Cell2, Cell3, Cell4, Cell5, Cell6, Cell7) {
-  mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+Cell1+Cell2+Cell3+Cell4+Cell5+Cell6+Cell7,maxit=200))
+RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3,X4, X5, X6,X7,X8, Cell1, Cell2, Cell3, Cell4, Cell5, Cell6, Cell7) {
+  mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+X8+Cell1+Cell2+Cell3+Cell4+Cell5+Cell6+Cell7,maxit=200))
   if(class(mod) == "try-error"){
     print(paste("error thrown by column", methcol))
     invisible(rep(NA, 3))
@@ -1414,9 +1415,10 @@ system.time(ind.resB4 <- mclapply(setNames(seq_len(ncol(beta_matrix)), dimnames(
                                   , X2=PHENO[,9]	# child sex
                                   , X3=PHENO[,10]	# Parity -- 88 <-"parity"
                                   , X4=PHENO[,11]	# Maternal education  -- 78 <-"estudios3c"
-                                  , X5=PHENO[,13]	# Neighborhood ses	
-                                  , X6=PHENO[,14]	# season of conception	
-                                  , X7=PHENO[,2]	# (cohort)	
+                                  , X5=PHENO[,12]	# Maternal smoking during pregnancy
+                                  , X6=PHENO[,13]	# Neighborhood ses	
+                                  , X7=PHENO[,14]	# season of conception	
+                                  , X8=PHENO[,2]	# (cohort)	
                                   , Cell1 = omegas[,1]
                                   , Cell2 = omegas[,2]
                                   , Cell3 = omegas[,3]
