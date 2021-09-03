@@ -291,13 +291,22 @@ table(ifelse(rownames(omegas)==rownames(beta_matrix),"MATCHED","Not Matched"))
 #### Modeling with covariate adjustment
 
 #Add function for running the model 
+
 RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X5, X6, X7, X8, X9) {
-  mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+X8+X9,maxit=200))
-  if(class(mod) == "try-error"){
-    print(paste("error thrown by column", methcol))
-    invisible(rep(NA, 3))
-  }else cf = coeftest(mod, vcov=vcovHC(mod, type="HC0"))
-  cf[2, c("Estimate", "Std. Error", "Pr(>|z|)")]
+    mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+X8+X9,maxit=200))
+    if(class(mod) == "try-error"){
+        print(paste("error thrown by column", methcol))
+        invisible(rep(NA, 3))
+    }else {
+        cf = try(coeftest(mod, vcov=vcovHC(mod, type="HC0")))
+        if( class(cf)[1] == "try-error") {
+            cat("error throw by CpG", set, ";")
+            print(paste0(cov, " - chol2inv could not be computed"))
+            cf = rep(NA,3)
+        }
+       
+    }
+    cf[2, c("Estimate", "Std. Error", "Pr(>|z|)")]
 }
 
 #Run adjusted MWAS
@@ -354,15 +363,23 @@ gzip("PACE_EPIC_ModelA1_30-08f.txt")
 #### Modeling with covariate adjustment
 
 #Add function for running the model 
-RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X5, X6, X7, X8, X9, cell1, cell2, cell3, cell4, cell5, cell6, cell7) {
-  mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+X8+X9+cell1+cell2+cell3+cell4+cell5+cell6+cell7,maxit=200))
-  if(class(mod) == "try-error"){
-    print(paste("error thrown by column", methcol))
-    invisible(rep(NA, 3))
-  }else cf = coeftest(mod, vcov=vcovHC(mod, type="HC0"))
-  cf[2, c("Estimate", "Std. Error", "Pr(>|z|)")]
-}
 
+RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X5, X6, X7, X8, X9, cell1, cell2, cell3, cell4, cell5, cell6, cell7) {
+    mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+X8+X9+cell1+cell2+cell3+cell4+cell5+cell6+cell7,maxit=200))
+    if(class(mod) == "try-error"){
+        print(paste("error thrown by column", methcol))
+        invisible(rep(NA, 3))
+    }else {
+        cf = try(coeftest(mod, vcov=vcovHC(mod, type="HC0")))
+        if( class(cf)[1] == "try-error") {
+            cat("error throw by CpG", set, ";")
+            print(paste0(cov, " - chol2inv could not be computed"))
+            cf = rep(NA,3)
+        }
+       
+    }
+    cf[2, c("Estimate", "Std. Error", "Pr(>|z|)")]
+}
 #Run adjusted MWAS
 
 # Variables in the model 
@@ -489,14 +506,21 @@ write.table(desc, "PACE_INMA_CpG_summary_31-08.txt", sep = "\t", col.names = T, 
 
 #Add function for running the model 
 
-RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3,X4,X5,X6,X7,X8,X9) {
-  mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+X8+X9,maxit=200))
-  if(class(mod) == "try-error"){
-    print(paste("error thrown by column", methcol))
-    invisible(rep(NA, 3))
-  }else 
-    cf = coeftest(mod, vcov=vcovHC(mod, type="HC0"))
-  cf[2, c("Estimate", "Std. Error", "Pr(>|z|)")]
+RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X5, X6, X7, X8, X9) {
+    mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+X8+X9,maxit=200))
+    if(class(mod) == "try-error"){
+        print(paste("error thrown by column", methcol))
+        invisible(rep(NA, 3))
+    }else {
+        cf = try(coeftest(mod, vcov=vcovHC(mod, type="HC0")))
+        if( class(cf)[1] == "try-error") {
+            cat("error throw by CpG", set, ";")
+            print(paste0(cov, " - chol2inv could not be computed"))
+            cf = rep(NA,3)
+        }
+       
+    }
+    cf[2, c("Estimate", "Std. Error", "Pr(>|z|)")]
 }
 
 #Run adjusted MWAS
@@ -551,14 +575,22 @@ gzip("PACE_EPIC_ModelB1_31-08.txt")
 #### Modeling with covariate and cell-mix adjustment
 
 #Add function for running the model 
-RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3,X4,X5,X6,X7,X8,X9,cell1, cell2, cell3, cell4, cell5, cell6, cell7) {
-  mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+X8+X9+cell1+cell2+cell3+cell4+cell5+cell6+cell7,maxit=200))
-  if(class(mod) == "try-error"){
-    print(paste("error thrown by column", methcol))
-    invisible(rep(NA, 3))
-  }else 
-    cf = coeftest(mod, vcov=vcovHC(mod, type="HC0"))
-  cf[2, c("Estimate", "Std. Error", "Pr(>|z|)")]
+
+RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X5, X6, X7, X8, X9, cell1, cell2, cell3, cell4, cell5, cell6, cell7) {
+    mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+X8+X9+cell1+cell2+cell3+cell4+cell5+cell6+cell7,maxit=200))
+    if(class(mod) == "try-error"){
+        print(paste("error thrown by column", methcol))
+        invisible(rep(NA, 3))
+    }else {
+        cf = try(coeftest(mod, vcov=vcovHC(mod, type="HC0")))
+        if( class(cf)[1] == "try-error") {
+            cat("error throw by CpG", set, ";")
+            print(paste0(cov, " - chol2inv could not be computed"))
+            cf = rep(NA,3)
+        }
+       
+    }
+    cf[2, c("Estimate", "Std. Error", "Pr(>|z|)")]
 }
 
 #Run adjusted MWAS
@@ -673,13 +705,22 @@ table(ifelse(rownames(omegas)==rownames(beta_matrix),"MATCHED","Not Matched"))
 
 #Add function for running the model 
 RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X5, X6, X7, X8) {
-  mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+X8,maxit=200))
-  if(class(mod) == "try-error"){
-    print(paste("error thrown by column", methcol))
-    invisible(rep(NA, 3))
-  }else cf = coeftest(mod, vcov=vcovHC(mod, type="HC0"))
-  cf[2, c("Estimate", "Std. Error", "Pr(>|z|)")]
+    mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+X8 ,maxit=200))
+    if(class(mod) == "try-error"){
+        print(paste("error thrown by column", methcol))
+        invisible(rep(NA, 3))
+    }else {
+        cf = try(coeftest(mod, vcov=vcovHC(mod, type="HC0")))
+        if( class(cf)[1] == "try-error") {
+            cat("error throw by CpG", set, ";")
+            print(paste0(cov, " - chol2inv could not be computed"))
+            cf = rep(NA,3)
+        }
+       
+    }
+    cf[2, c("Estimate", "Std. Error", "Pr(>|z|)")]
 }
+
 
 #Run adjusted MWAS
 
@@ -734,14 +775,21 @@ gzip("PACE_EPIC_ModelC1_31-08.txt")
 
 #Add function for running the model 
 
-RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X5, X6, X7, X8, cell1, cell2, cell3,cell4,cell5,cell6,cell7) {
-  mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+X8+cell1+cell2+cell3+cell4+cell5+cell6+cell7,maxit=200))
-  if(class(mod) == "try-error"){
-    print(paste("error thrown by column", methcol))
-    invisible(rep(NA, 3))
-  }else 
-    cf = coeftest(mod, vcov=vcovHC(mod, type="HC0"))
-  cf[2, c("Estimate", "Std. Error", "Pr(>|z|)")]
+RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X5, X6, X7, X8, cell1, cell2, cell3, cell4, cell5, cell6, cell7) {
+    mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+X8+cell1+cell2+cell3+cell4+cell5+cell6+cell7,maxit=200))
+    if(class(mod) == "try-error"){
+        print(paste("error thrown by column", methcol))
+        invisible(rep(NA, 3))
+    }else {
+        cf = try(coeftest(mod, vcov=vcovHC(mod, type="HC0")))
+        if( class(cf)[1] == "try-error") {
+            cat("error throw by CpG", set, ";")
+            print(paste0(cov, " - chol2inv could not be computed"))
+            cf = rep(NA,3)
+        }
+       
+    }
+    cf[2, c("Estimate", "Std. Error", "Pr(>|z|)")]
 }
 
 #Run adjusted MWAS
@@ -867,7 +915,22 @@ RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3,X4,X5,X6,X7,X8) {
     cf = coeftest(mod, vcov=vcovHC(mod, type="HC0"))
   cf[2, c("Estimate", "Std. Error", "Pr(>|z|)")]
 }
-
+RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X5, X6, X7, X8) {
+    mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+X8,maxit=200))
+    if(class(mod) == "try-error"){
+        print(paste("error thrown by column", methcol))
+        invisible(rep(NA, 3))
+    }else {
+        cf = try(coeftest(mod, vcov=vcovHC(mod, type="HC0")))
+        if( class(cf)[1] == "try-error") {
+            cat("error throw by CpG", set, ";")
+            print(paste0(cov, " - chol2inv could not be computed"))
+            cf = rep(NA,3)
+        }
+       
+    }
+    cf[2, c("Estimate", "Std. Error", "Pr(>|z|)")]
+}
 #Run adjusted MWAS
 
 system.time(ind.resD1 <- mclapply(setNames(seq_len(ncol(beta_matrix)), dimnames(beta_matrix)[[2]]), RLMtest, meth_matrix=beta_matrix, 
@@ -922,15 +985,21 @@ gzip("PACE_INMA_ModelD1_31-08.txt")
 #Add function for running the model 
 
 RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X5, X6, X7, X8, cell1, cell2, cell3, cell4, cell5, cell6, cell7) {
-  mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+X8+cell1+cell2+cell3+cell4+cell5+cell6+cell7,maxit=200))
-  if(class(mod) == "try-error"){
-    print(paste("error thrown by column", methcol))
-    invisible(rep(NA, 3))
-  }else 
-    cf = coeftest(mod, vcov=vcovHC(mod, type="HC0"))
-  cf[2, c("Estimate", "Std. Error", "Pr(>|z|)")]
+    mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+X8+cell1+cell2+cell3+cell4+cell5+cell6+cell7,maxit=200))
+    if(class(mod) == "try-error"){
+        print(paste("error thrown by column", methcol))
+        invisible(rep(NA, 3))
+    }else {
+        cf = try(coeftest(mod, vcov=vcovHC(mod, type="HC0")))
+        if( class(cf)[1] == "try-error") {
+            cat("error throw by CpG", set, ";")
+            print(paste0(cov, " - chol2inv could not be computed"))
+            cf = rep(NA,3)
+        }
+       
+    }
+    cf[2, c("Estimate", "Std. Error", "Pr(>|z|)")]
 }
-
 #Run adjusted MWAS
 
 # Variables in the model  
@@ -1045,15 +1114,23 @@ table(ifelse(rownames(omegas_NSP)==rownames(beta_matrix_NSP),"MATCHED","Not Matc
 #### Modeling with covariate adjustment
 
 #Add function for running the model (4 covariates)
-RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X5, X6, X7,X8, cell1, cell2, cell3, cell4, cell5, cell6, cell7) {
-  mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X8+cell1+cell2+cell3+cell4+cell5+cell6+cell7,maxit=200))
-  if(class(mod) == "try-error"){
-    print(paste("error thrown by column", methcol))
-    invisible(rep(NA, 3))
-  }else cf = coeftest(mod, vcov=vcovHC(mod, type="HC0"))
-  cf[2, c("Estimate", "Std. Error", "Pr(>|z|)")]
-}
 
+RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X5, X6, X7, X8, cell1, cell2, cell3, cell4, cell5, cell6, cell7) {
+    mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+X8+cell1+cell2+cell3+cell4+cell5+cell6+cell7,maxit=200))
+    if(class(mod) == "try-error"){
+        print(paste("error thrown by column", methcol))
+        invisible(rep(NA, 3))
+    }else {
+        cf = try(coeftest(mod, vcov=vcovHC(mod, type="HC0")))
+        if( class(cf)[1] == "try-error") {
+            cat("error throw by CpG", set, ";")
+            print(paste0(cov, " - chol2inv could not be computed"))
+            cf = rep(NA,3)
+        }
+       
+    }
+    cf[2, c("Estimate", "Std. Error", "Pr(>|z|)")]
+}
 #Run adjusted MWAS
 # Variables in the model 
 
@@ -1166,13 +1243,21 @@ table(ifelse(rownames(omegas)==rownames(beta_matrix),"MATCHED","Not Matched"))
 #### Modeling with covariate adjustment
 
 #Add function for running the model (4 covariates)
-RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3,X4, X5, X6, X7, X8, Cell1, Cell2, Cell3, Cell4, Cell5, Cell6, Cell7) {
-  mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X8+Cell1+Cell2+Cell3+Cell4+Cell5+Cell6+Cell7,maxit=200))
-  if(class(mod) == "try-error"){
-    print(paste("error thrown by column", methcol))
-    invisible(rep(NA, 3))
-  }else cf = coeftest(mod, vcov=vcovHC(mod, type="HC0"))
-  cf[2, c("Estimate", "Std. Error", "Pr(>|z|)")]
+RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X5, X6, X7, X8, cell1, cell2, cell3, cell4, cell5, cell6, cell7) {
+    mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+X8+cell1+cell2+cell3+cell4+cell5+cell6+cell7,maxit=200))
+    if(class(mod) == "try-error"){
+        print(paste("error thrown by column", methcol))
+        invisible(rep(NA, 3))
+    }else {
+        cf = try(coeftest(mod, vcov=vcovHC(mod, type="HC0")))
+        if( class(cf)[1] == "try-error") {
+            cat("error throw by CpG", set, ";")
+            print(paste0(cov, " - chol2inv could not be computed"))
+            cf = rep(NA,3)
+        }
+       
+    }
+    cf[2, c("Estimate", "Std. Error", "Pr(>|z|)")]
 }
 
 #Run adjusted MWAS
@@ -1286,12 +1371,20 @@ table(ifelse(rownames(omegas)==rownames(beta_matrix),"MATCHED","Not Matched"))
 
 #Add function for running the model (4 covariates)
 RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X5, X6, X7, X8, cell1, cell2, cell3, cell4, cell5, cell6, cell7) {
-  mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+X8+cell1+cell2+cell3+cell4+cell5+cell6+cell7,maxit=200))
-  if(class(mod) == "try-error"){
-    print(paste("error thrown by column", methcol))
-    invisible(rep(NA, 3))
-  }else cf = coeftest(mod, vcov=vcovHC(mod, type="HC0"))
-  cf[2, c("Estimate", "Std. Error", "Pr(>|z|)")]
+    mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+X8+cell1+cell2+cell3+cell4+cell5+cell6+cell7,maxit=200))
+    if(class(mod) == "try-error"){
+        print(paste("error thrown by column", methcol))
+        invisible(rep(NA, 3))
+    }else {
+        cf = try(coeftest(mod, vcov=vcovHC(mod, type="HC0")))
+        if( class(cf)[1] == "try-error") {
+            cat("error throw by CpG", set, ";")
+            print(paste0(cov, " - chol2inv could not be computed"))
+            cf = rep(NA,3)
+        }
+       
+    }
+    cf[2, c("Estimate", "Std. Error", "Pr(>|z|)")]
 }
 
 #Run adjusted MWAS
@@ -1397,13 +1490,22 @@ table(ifelse(rownames(omegas)==rownames(beta_matrix),"MATCHED","Not Matched"))
 #### Modeling with covariate adjustment
 
 #Add function for running the model (4 covariates)
-RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3,X4, X5, X6,X7,X8, Cell1, Cell2, Cell3, Cell4, Cell5, Cell6, Cell7) {
-  mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+X8+Cell1+Cell2+Cell3+Cell4+Cell5+Cell6+Cell7,maxit=200))
-  if(class(mod) == "try-error"){
-    print(paste("error thrown by column", methcol))
-    invisible(rep(NA, 3))
-  }else cf = coeftest(mod, vcov=vcovHC(mod, type="HC0"))
-  cf[2, c("Estimate", "Std. Error", "Pr(>|z|)")]
+
+RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X5, X6, X7, X8, cell1, cell2, cell3, cell4, cell5, cell6, cell7) {
+    mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+X8+cell1+cell2+cell3+cell4+cell5+cell6+cell7,maxit=200))
+    if(class(mod) == "try-error"){
+        print(paste("error thrown by column", methcol))
+        invisible(rep(NA, 3))
+    }else {
+        cf = try(coeftest(mod, vcov=vcovHC(mod, type="HC0")))
+        if( class(cf)[1] == "try-error") {
+            cat("error throw by CpG", set, ";")
+            print(paste0(cov, " - chol2inv could not be computed"))
+            cf = rep(NA,3)
+        }
+       
+    }
+    cf[2, c("Estimate", "Std. Error", "Pr(>|z|)")]
 }
 
 #Run adjusted MWAS
