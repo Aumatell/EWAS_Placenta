@@ -159,7 +159,7 @@ save_html(tt, "EpicDescriptives31-08.html", background = "white", libdir = "lib"
 #Pollutants missing information
 
 polnavec<-as.data.frame(matrix(ncol=0,nrow = 350))
-for( i in c(3:7)){
+for( i in c(72:76)){
   PHENO[,i][as.vector(PHENO[,i]) == ""] = NA
   polnavec$new<-as.numeric(!is.na(PHENO[,i]))
   names(polnavec)[names(polnavec)=="new"] <- colnames(PHENO[i])
