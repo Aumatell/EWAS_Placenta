@@ -3,9 +3,13 @@
 # SCRIPT TO RUN EWAS AIR POLLUTION IN INMA PLACENTA 450K
 # 
 ################################################################################
+
 #set workong directory
 setwd("---")
+
+################################################################################
 #Load packages
+################################################################################
 
 library(readr)
 library(RefFreeEWAS)
@@ -28,9 +32,10 @@ library(limma) #venn diagrams
 library(table1) #Descriptive statistics
 library(htmltools) #save html
 library(EASIER) # annotation and functional enrichment of the placenta
+
 #################################################################################
 # load air polution data  and pd (methilation) data
-
+################################################################################
 #Air polution data
 ap<- read_dta("---")
 
@@ -40,18 +45,20 @@ pd<-pd2
 pd2<-NULL
 
 #### Check the dimentions of the data
-dim(as.data.frame(pd))               # 389  56
-dim(as.data.frame(annot))            # 865859     46
-dim(fnbetas.adj)      # 796653    389
+dim(as.data.frame(pd))               
+dim(as.data.frame(annot))            
+dim(fnbetas.adj)      
 
 #################################################################################
 # Step 0: subselect variables of interest
+################################################################################
 
 selection<-c(1,2,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,23,24,25,26,27,28,29,30,31,32,35,36,34,38,45)
 ap_sub<-ap[,selection]
 
 #################################################################################
 # Step 1: create a variable cohort.x 
+################################################################################
 
 # Generate a variable cohort.x from ap_sub$cohorte using eht following key:
 #
@@ -69,12 +76,12 @@ table(ap_sub$cohort.fin)
 
 #################################################################################
 # Step 2: link pd with air pollution (using cohort.x + idnum) and save it as PHENO
+################################################################################
 
 # Create a variable using cohort.x and idnum together to identify the samples in both dataframes
 ap_sub$mergingcolumn<-paste(ap_sub$cohort.fin, ap_sub$idnum)
 
 pd$mergingcolumn <- paste( pd$Cohort_name, pd$idnum )
-
 
 # Merge the datasets pd and ap_sub by the new column selecting only the 
 # samples present in both datasets
@@ -87,12 +94,14 @@ dim(PHENO)  #  168 86
 
 PHENO.OG<-PHENO
 
+# Indicate categorical variables as factor
+
 for (i in c(7,45,29,52,78,80,82,85,86,87,88,90,91)){ 
   PHENO[,i]<-as.factor(PHENO[,i])
 }
-
-## SUBSETING THE SAMPLES WITH ALL THE INFORMATION ABOUT THE COVARIATES NEEDED IN THE MODELS
-
+################################################################################
+## Step 3: SUBSETING THE SAMPLES WITH ALL THE INFORMATION ABOUT THE COVARIATES NEEDED IN THE MODELS
+################################################################################
 
 ### No2 subset
 pheno.no2<-PHENO[,c(2,7,72:76,26,45, 87, 29, 88, 89, 91,52)]
@@ -133,7 +142,8 @@ dim(pheno.pm25f)    # 350  86
 
 PHENO<-PHENO[rownames(pheno.pm25f),]
 #################################################################################
-#Step 3 : Descriptive analysis of the data
+#Step 4 : Descriptive analysis of the data
+################################################################################
 
 PHENO$magecat<-NULL
 magecat<-NULL
@@ -165,7 +175,7 @@ for( i in c(72:76)){
   names(polnavec)[names(polnavec)=="new"] <- colnames(PHENO[i])
 }
 
-#### Venn diagram per expos
+#### Venn diagram per expositions
 
 for (cohort in unique(PHENO$cohort.x)){
   a <- vennCounts(!apply(PHENO[PHENO$cohort.x==cohort,69:73]),2,is.na)
@@ -190,14 +200,16 @@ vennDiagram(vennCounts(polnavec),circle.col=c("red","green","blue","yellow","pur
 dev.off()    
 
 #################################################################################
-# Step 4:  read omegas
+# Step 5:  read omegas
+################################################################################
 
 omegas<-read.delim("---", header = TRUE, sep = "\t")
 omegas.OG<-omegas
 fnbetas.adj.OG<-fnbetas.adj
 
 #################################################################################
-# Step 5: order IDs in PHENO, omegas and methylation data
+# Step 6: order IDs in PHENO, omegas and methylation data
+################################################################################
 
 PHENO<-pheno.no2f
 
@@ -231,7 +243,8 @@ dim(PHENO)       #
 
 
 #################################################################################
-# Step 5: do trimming of methylation data  #Modifyed from the script nº 4
+# Step 7: do trimming of methylation data  #Modifyed from the script nº 4
+################################################################################
 
 #### Trimming methylation beta values to remove potential outliers
 
@@ -279,14 +292,17 @@ table(ifelse(rownames(omegas)==rownames(beta_matrix),"MATCHED","Not Matched"))
 
 
 #################################################################################
-# Step 6: EWAS 
+# Step 8: EWAS 
 ### modifyed fromStandard code from PACE
+################################################################################
 
-#################################################################################
-## A MODELS 1 and 2 (NO2)
+################################################################################
+#################### A MODELS 1 and 2 (NO2) ####################################
+################################################################################
 
-#################################################################################
-#Model A1
+################################################################################
+########################## Model A1 ############################################
+################################################################################
 
 #### Modeling with covariate adjustment
 
@@ -357,8 +373,9 @@ dev.off()
 write.table(all.resultsA1, "PACE_EPIC_ModelA1_30-08f.txt",na="NA")
 gzip("PACE_EPIC_ModelA1_30-08f.txt")
 
-#################################################################################
-#Model A2
+################################################################################
+########################## Model A2 ############################################
+################################################################################
 
 #### Modeling with covariate adjustment
 
@@ -435,10 +452,12 @@ dev.off()
 write.table(all.resultsA2, "PACE_EPIC_ModelA2_31-08.txt",na="NA")
 gzip("PACE_EPIC_ModelA2_31-08.txt")
 
-#################################################################################
-## B MODELS 1 and 2 (PM2.5)
-
 ################################################################################
+#################### B MODELS 1 and 2 (PM2.5) ##################################
+################################################################################
+
+############ Order IDs in PHENO, omegas and methylation data   #################
+
 PHENO<-pheno.pm25f
 
 ### REMOVE THE INDIVIDUALS WITH MISSING INFORMATION 
@@ -446,8 +465,6 @@ PHENO<-pheno.pm25f
 PHENO<-PHENO[-which(duplicated(PHENO[,c(2,5,8:15)], fromLast = TRUE)),]
 fnbetas.adj<-fnbetas.adj.OG[,(colnames(fnbetas.adj.OG)  %in% PHENO$Basename)]
 omegas<-omegas.OG[(rownames(omegas.OG)  %in% PHENO$Basename),]
-
-#########omegas
 
 #Check the order to be the same between Methilation data and pheno data
 identical(colnames(fnbetas.adj), as.character(PHENO$Basename)) ##FALSE
@@ -468,6 +485,8 @@ dim(PHENO)       #      154   86     -> Samples in Rows
 
 # The Size of N match between the datasets and is in the same order. 
 
+###################### Trimming of methylation data #########################
+
 #Remove outliers from METH (methylation data where probes are rows and samples are columns)
 
 system.time(OutlierResults<-removeOutliers(fnbetas.adj)) 
@@ -486,7 +505,7 @@ table(ifelse(rownames(omegas)==PHENO$Basename,"MATCHED","Not Matched"))
 table(ifelse(rownames(omegas)==rownames(beta_matrix),"MATCHED","Not Matched"))
 #MATCHED 168 
 
-####### Summarize probes
+#################################### Summarize probes ############################
 
 #function
 descriptives<-function(x){
@@ -498,9 +517,9 @@ descriptives<-function(x){
 desc<-t(apply(beta_matrix,2,descriptives))
 write.table(desc, "PACE_INMA_CpG_summary_31-08.txt", sep = "\t", col.names = T, row.names = T, append = F, quote=FALSE)
 
-#################################################################################
-#Model B1 
-
+################################################################################
+########################## Model B1 ############################################
+################################################################################
 #Methylation = pregnancy PM2.5 levels + child sex + parity + maternal education +
 # maternal smoking during pregnancy + neighborhood SES + season of conception + ancestry (+ cohort)
 
@@ -567,8 +586,10 @@ dev.off()
 write.table(all.resultsB1, "PACE_EPIC_ModelB1_31-08.txt",na="NA")
 gzip("PACE_EPIC_ModelB1_31-08.txt")
 
-#################################################################################
-#Model B2 
+################################################################################
+########################## Model B2 ############################################
+################################################################################
+
 #Methylation = pregnancy PM2.5 levels + child sex + parity + maternal education +
 # maternal smoking during pregnancy + neighborhood SES + season of conception + ancestry (+ cohort)
 
@@ -643,7 +664,12 @@ dev.off()
 write.table(all.resultsB2, "PACE_EPIC_ModelB2_31-08.txt",na="NA")
 gzip("PACE_EPIC_ModelB2_31-08.txt")
 
-#################################################################################
+
+################################################################################
+#################### C MODELS 1 and 2 (PM 2.5 Abs) #############################
+################################################################################
+
+############ Order IDs in PHENO, omegas and methylation data   #################
 
 PHENO<-pheno.absf
 
@@ -674,6 +700,8 @@ dim(PHENO)       #      154   86     -> Samples in Rows
 
 # The Size of N match between the datasets and is in the same order. 
 
+###################### Trimming of methylation data #########################
+
 #Remove outliers from METH (methylation data where probes are rows and samples are columns)
 
 system.time(OutlierResults<-removeOutliers(fnbetas.adj)) 
@@ -691,11 +719,10 @@ table(ifelse(rownames(omegas)==PHENO$Basename,"MATCHED","Not Matched"))
 #MATCHED 168
 table(ifelse(rownames(omegas)==rownames(beta_matrix),"MATCHED","Not Matched"))
 #MATCHED 168 
-#################################################################################
-## C MODELS 1 and 2 (PM2.5 asdorbance)
 
-#################################################################################
-#Model C1 
+################################################################################
+########################## Model C1 ############################################
+################################################################################
 
 #Methylation = pregnancy PM2.5 absorbance levels + child sex + parity + 
 # maternal education + maternal smoking during pregnancy + neighborhood SES + 
@@ -764,8 +791,9 @@ dev.off()
 write.table(all.resultsC1, "PACE_EPIC_ModelC1_31-08.txt",na="NA")
 gzip("PACE_EPIC_ModelC1_31-08.txt")
 
-#################################################################################
-#Model C2 
+################################################################################
+########################## Model C2 ############################################
+################################################################################
 
 #Methylation = pregnancy PM2.5 absorbance levels + child sex + parity + 
 # maternal education + maternal smoking during pregnancy + neighborhood SES + 
@@ -840,10 +868,12 @@ dev.off()
 # export table of results
 write.table(all.resultsC2, "PACE_EPIC_ModelC2_15-08f.txt",na="NA")
 gzip("PACE_EPIC_ModelC2_15-08f.txt")
-#################################################################################
-## D MODELS 1 and 2 (PB)
 
-#################################################################################
+################################################################################
+#################### D MODELS 1 and 2 (PM 10) ##################################
+################################################################################
+
+############ Order IDs in PHENO, omegas and methylation data   #################
 
 PHENO<-pheno.pm10f
 
@@ -876,6 +906,7 @@ dim(PHENO)       #      154   86     -> Samples in Rows
 
 # The Size of N match between the datasets and is in the same order. 
 
+###################### Trimming of methylation data #########################
 
 #Remove outliers from METH (methylation data where probes are rows and samples are columns)
 
@@ -895,8 +926,9 @@ table(ifelse(rownames(omegas)==PHENO$Basename,"MATCHED","Not Matched"))
 table(ifelse(rownames(omegas)==rownames(beta_matrix),"MATCHED","Not Matched"))
 #MATCHED 168 
 
-#################################################################################
-#Model D1 
+################################################################################
+########################## Model D1 ############################################
+################################################################################
 
 #Methylation = pregnancy PM10 levels + child sex + parity + 
 # maternal education + maternal smoking during pregnancy + neighborhood SES + 
@@ -973,8 +1005,9 @@ dev.off()
 write.table(all.resultsD1, "PACE_INMA_ModelD1_31-08.txt",na="NA")
 gzip("PACE_INMA_ModelD1_31-08.txt")
 
-#################################################################################
-#Model D2 
+################################################################################
+########################## Model D2 ############################################
+################################################################################
 
 #Methylation = pregnancy PM10 levels + child sex + parity + 
 # maternal education + maternal smoking during pregnancy + neighborhood SES + 
@@ -1050,12 +1083,15 @@ dev.off()
 write.table(all.resultsD2, "PACE_EPIC_ModelD2_31-08.txt",na="NA")
 gzip("PACE_EPIC_ModelD2_31-08.txt")
 
-#################################################################################
-## MODELS 3 A and B   ## DOUBLECHECK SMOKING
+################################################################################
+############### A and B MODELS 3 (NO2 and PM2.5 of non smoke) ##################
+################################################################################
 
-#################################################################################
 #  Sensitivity analysis (models restricted to mothers that did not smoke during pregnancy) 
-#additionally adjusted model for cellular heterogeneity
+#  additionally adjusted model for cellular heterogeneity
+
+############ Order IDs in PHENO, omegas and methylation data   #################
+
 PHENO<-pheno.no2f
 PHENO<-PHENO[PHENO[,12]==0,]
 ### REMOVE THE INDIVIDUALS WITH MISSING INFORMATION 
@@ -1063,8 +1099,6 @@ PHENO<-PHENO[PHENO[,12]==0,]
 PHENO<-PHENO[-which(duplicated(PHENO[,c(2,3,8:15)], fromLast = TRUE)),]
 fnbetas.adj<-fnbetas.adj.OG[,(colnames(fnbetas.adj.OG)  %in% PHENO$Basename)]
 omegas<-omegas.OG[(rownames(omegas.OG)  %in% PHENO$Basename),]
-
-#########omegas
 
 #Check the order to be the same between Methilation data and pheno data
 identical(colnames(fnbetas.adj), as.character(PHENO$Basename)) ##FALSE
@@ -1083,6 +1117,7 @@ dim(omegas)      #      154   3      -> Samples in Rows
 dim(fnbetas.adj) #   478434   154    -> Samples in Columns 
 dim(PHENO)       #      154   86     -> Samples in Rows    
 
+###################### Trimming of methylation data #########################
 
 #Remove outliers from METH (methylation data where probes are rows and samples are columns)
 
@@ -1104,8 +1139,10 @@ table(ifelse(rownames(omegas_NSP)==PHENO_NSP$Basename,"MATCHED","Not Matched"))
 table(ifelse(rownames(omegas_NSP)==rownames(beta_matrix_NSP),"MATCHED","Not Matched"))
 #MATCHED 168 
 
-#################################################################################
-# Model A3 
+################################################################################
+########################## Model A3 ############################################
+################################################################################
+
 ##Methylation = pregnancy NO2  levels + maternal age + child sex + parity + 
 # maternal education + neighborhood SES + season of conception + ancestry + 
 # Houseman free reference estimations (+ selection) 
@@ -1183,6 +1220,9 @@ write.table(all.resultsA3, "PACE_EPIC_ModelA3_15-08f.txt",na="NA")
 gzip("PACE_EPIC_ModelA3_15-08f.txt")
 
 ################################################################################
+
+############ Order IDs in PHENO, omegas and methylation data   #################
+
 PHENO<-pheno.pm25f
 PHENO<-PHENO[PHENO[,12]==0,]
 ### REMOVE THE INDIVIDUALS WITH MISSING INFORMATION 
@@ -1212,7 +1252,7 @@ dim(omegas)      #      154   3      -> Samples in Rows
 dim(fnbetas.adj) #   478434   154    -> Samples in Columns 
 dim(PHENO)       #      154   86     -> Samples in Rows    
 
-
+###################### Trimming of methylation data #########################
 
 #Remove outliers from METH (methylation data where probes are rows and samples are columns)
 
@@ -1233,8 +1273,9 @@ table(ifelse(rownames(omegas)==PHENO$Basename,"MATCHED","Not Matched"))
 table(ifelse(rownames(omegas)==rownames(beta_matrix),"MATCHED","Not Matched"))
  
 
-#################################################################################
-#Model B3 
+################################################################################
+########################## Model B3 ############################################
+################################################################################
 
 #Methylation = pregnancy PM2.5 levels + maternal age + child sex + parity + 
 # maternal education + neighborhood SES + season of conception + ancestry + 
@@ -1272,13 +1313,13 @@ system.time(ind.resB3 <- mclapply(setNames(seq_len(ncol(beta_matrix)), dimnames(
                                  , X6=PHENO[,14]	# Season of conception
                                  , X7=PHENO[,15]	# ancestry
                                  , X8=PHENO[,2]	  # cohort
-                                 , Cell1 = omegas[,1]
-                                 , Cell2 = omegas[,2]
-                                 , Cell3 = omegas[,3]
-                                 , Cell4 = omegas[,4]
-                                 , Cell5 = omegas[,5]
-                                 , Cell6 = omegas[,6]
-                                 , Cell7 = omegas[,7]
+                                 , cell1 = omegas[,1]
+                                 , cell2 = omegas[,2]
+                                 , cell3 = omegas[,3]
+                                 , cell4 = omegas[,4]
+                                 , cell5 = omegas[,5]
+                                 , cell6 = omegas[,6]
+                                 , cell7 = omegas[,7]
                                  
                                  
 ))
@@ -1311,12 +1352,16 @@ dev.off()
 write.table(all.resultsB3, "PACE_EPIC_ModelB3_15-08f.txt",na="NA")
 gzip("PACE_EPIC_ModelB3_15-08f.txt")
 
-#################################################################################
-## MODELS 4 A and B (Sensitivity analysis models restricted to European ancestry using NO2 and PM2.5)
 
-#################################################################################
+################################################################################
+############### A and B MODELS 4 (NO2 and PM2.5 of Europeans) ##################
+################################################################################
+
 #	Sensitivity analysis (models restricted to European ancestry) 
 # additionally adjusted model for cellular heterogeneity
+
+############ Order IDs in PHENO, omegas and methylation data   #################
+
 PHENO<-pheno.no2f
 
 PHENO<-PHENO[PHENO[,15]=="European",] ###### REVISAR
@@ -1361,8 +1406,9 @@ table(ifelse(rownames(omegas)==PHENO$Basename,"MATCHED","Not Matched"))
 #MATCHED 168
 table(ifelse(rownames(omegas)==rownames(beta_matrix),"MATCHED","Not Matched"))
 #MATCHED 168 
-#################################################################################
-# Model A4 
+################################################################################
+########################## Model A4 ############################################
+################################################################################
 ##Methylation = pregnancy NO2  levels + maternal age + child sex + parity + 
 # maternal education + neighborhood SES + season of conception + ancestry + 
 # Houseman free reference estimations (+ selection) 
@@ -1437,6 +1483,9 @@ write.table(all.resultsA4, "PACE_EPIC_ModelA4_31-08.txt",na="NA")
 gzip("PACE_EPIC_ModelA4_31-08.txt")
 
 #################################################################################
+
+############ Order IDs in PHENO, omegas and methylation data   #################
+
 PHENO<-pheno.pm25f
 
 PHENO<-PHENO[PHENO[,15]=="European",]
@@ -1461,6 +1510,9 @@ identical(colnames(fnbetas.adj), rownames(omegas)) ###True
 dim(omegas)      #      154   3      -> Samples in Rows    
 dim(fnbetas.adj) #   478434   154    -> Samples in Columns 
 dim(PHENO)       #      154   86     -> Samples in Rows    
+
+###################### Trimming of methylation data #########################
+
 #Remove outliers from METH (methylation data where probes are rows and samples are columns)
 
 system.time(OutlierResults<-removeOutliers(fnbetas.adj)) 
@@ -1480,8 +1532,9 @@ table(ifelse(rownames(omegas)==rownames(beta_matrix),"MATCHED","Not Matched"))
 #MATCHED 168 
 
 
-#################################################################################
-#Model B4 
+################################################################################
+########################## Model B4 ############################################
+################################################################################
 
 #Methylation = pregnancy PM2.5 levels + maternal age + child sex + parity + 
 # maternal education + neighborhood SES + season of conception + ancestry + 
@@ -1520,13 +1573,13 @@ system.time(ind.resB4 <- mclapply(setNames(seq_len(ncol(beta_matrix)), dimnames(
                                   , X6=PHENO[,13]	# Neighborhood ses	
                                   , X7=PHENO[,14]	# season of conception	
                                   , X8=PHENO[,2]	# (cohort)	
-                                  , Cell1 = omegas[,1]
-                                  , Cell2 = omegas[,2]
-                                  , Cell3 = omegas[,3]
-                                  , Cell4 = omegas[,4]
-                                  , Cell5 = omegas[,5]
-                                  , Cell6 = omegas[,6]
-                                  , Cell7 = omegas[,7]
+                                  , cell1 = omegas[,1]
+                                  , cell2 = omegas[,2]
+                                  , cell3 = omegas[,3]
+                                  , cell4 = omegas[,4]
+                                  , cell5 = omegas[,5]
+                                  , cell6 = omegas[,6]
+                                  , cell7 = omegas[,7]
 ))
 Sys.time()
 
@@ -1562,8 +1615,8 @@ write.table(data.frame(Model = c("A1","B1","C1","D1","A2","B2","C2","D2","A3","B
 
 
 #################################################################################
-
 # step 8: Correlation between models with different variables
+#################################################################################
 
 ## CHECK CPG ORDER! (merge )
 check<-c(all.resultsB1, all.resultsB2, all.resultsB3, all.resultsB4, all.resultsC1, all.resultsC2, all.resultsD1, all.resultsD2)
@@ -1773,20 +1826,16 @@ dim(all.resultsB4)
 dim(SigResB4)
 write.table(TopResB4, "PACE_EPIC_ModelB4_19-05_TopResults.txt",na="NA")
 
-################################################################################
-#Comparing significant results with other papers significant results
 
-matchingdata<-identical(SigResA4&probeID, other_data)
-SigResA4[matchingdata,]
 
 ################################################################################
 
 # remove na !!
-Topresults <- Reduce(function(...) merge(..., all=T), list(TopResA1,TopResA2,TopResA3,TopResA4,TopResB1,TopResB2,TopResB3, TopResB4, TopResC1, TopResC2, TopResD1, TopResD2))
+Topresults <- Reduce(function(...) merge(..., all=T), list(TopResB1,TopResB2,TopResB3, TopResB4))
 
 Topresults_list<-unique(Topresults$probeID)
 
-write.table(paste(unlist(Topresults_list), collapse="\n"), "PACE_EPIC_Top_Results_19-05_.txt",na="NA")
+write.table(paste(unlist(Topresults_list), collapse="\n"), "PACE_EPIC_Significative_Results_31-08.txt",na="NA")
 
 
 Topresults_list_UCSC<-unique(Topresults$UCSC_RefGene_Name)
@@ -1794,7 +1843,17 @@ Topresults_list_UCSC<-unique(Topresults$UCSC_RefGene_Name)
 Topresults_list_UCSC<-unique(sapply(Topresults_list_UCSC, function(x) x[1]))
 
 write.table(paste(unlist(Topresults_list_UCSC), collapse="\n"), "PACE_EPIC_Top_Results_19-05_UCSC.txt",na="NA")
+################################################################################
+# Comparison of significant results with other papers significant results
+#################################################################################
 
+matchingdata<-identical(SigResA4&probeID, other_data)
+SigResA4[matchingdata,]
+
+#################################################################################
+# Functional enrichment analisys of placenta
+# from https://github.com/isglobal-brge/EASIER/blob/main/module_scripts/Enrichment.R#L59
+#################################################################################
 require(EASIER)
 
 
@@ -1805,13 +1864,10 @@ require(EASIER)
 ########## ----------  VARIABLES DEFINED BY USER  ----------  ##########
 
 # Set working directory to enrichment folder
-setwd("<path to metaanalysis folder>/Enrichment")
+setwd("./Enrichment")
 
 # Files with CpG data to enrich may be a CpGs list or annotated GWAMA output
-FilesToEnrich <- c('./GWAMA_Results/MetaA1/MetaA1_Fixed_Modif.out',
-                   'GWAMA_Results/MetaA2/MetaA2_Fixed_Modif.out',
-                   'toenrich/CpGstoEnrich.txt'
-                   )
+FilesToEnrich <- c('./PACE_EPIC_Significative_Results_31-08.txt')
 
 # Values for adjustment
 BN <-  TRUE    # Use Bonferroni ?
@@ -1820,12 +1876,12 @@ pvalue <- 0.05 # significance level for p-value, if NA p-value is not used
 
 # Array type, used : EPIC or 450K
 # this data is defined for each file to analyse
-artype <- c('450K', 'EPIC', 'EPIC')
+artype <- c('EPIC')
 
 # Result paths definition for QC, Meta-Analysis and Enrichment
 results_folder <- 'QC_Results'
 results_gwama <- '.'
-results_enrich <- 'Enrichment'
+results_enrich <- './Enrichment'
 
 # Enrichment type :  'BLOOD' or 'PLACENTA'
 #     if enrichtype <- 'BLOOD' => enrichment with :
@@ -1845,7 +1901,7 @@ enrichFP18 <- FALSE
 testdata <- 'Fisher'
 
 # Perform eQTM enrichment
-bEQTM <- TRUE
+bEQTM <- FALSE
 
 ########## ----------  END VARIABLES DEFINED BY USER  ----------  ##########
 
