@@ -347,14 +347,12 @@ system.time(ind.resA1 <- mclapply(setNames(seq_len(ncol(beta_matrix)), dimnames(
 Sys.time()
 
 #Process covariate adjusted results
-setattr(ind.resA1, 'class', 'data.frame')
-setattr(ind.resA1, "row.names", c(NA_integer_,4))
-setattr(ind.resA1, "names", make.names(names(ind.resA1), unique=TRUE))
-probelistnamesA1 = names(ind.resA1)
-all.resultsA1 = t(data.table(ind.resA1))
-all.resultsA1 = data.table(all.resultsA1)
-all.resultsA1[, probeID := probelistnamesA1]
-setnames(all.resultsA1, c("BETA","SE", "P_VAL", "probeID")) # rename columns
+all.resultsA1 <- data.frame(matrix(unlist(ind.resA1), nrow=length(ind.resA1), byrow=TRUE))
+# Assignem els noms que hi havia a la llista (la part superior de la llista) al camp probeID
+all.resultsA1$probeID <- names(ind.resA1)
+# Assignem el nom de les columnes del dataframe
+colnames(all.resultsA1) <- c("BETA","SE", "P_VAL", "probeID")
+# Ordenem columnes
 setcolorder(all.resultsA1, c("probeID","BETA","SE", "P_VAL"))
 #rm(probelistnamesA1, ind.resA1)
 
@@ -426,15 +424,14 @@ system.time(ind.resA2 <- mclapply(setNames(seq_len(ncol(beta_matrix)), dimnames(
 Sys.time()
 
 #Process covariate adjusted results
-setattr(ind.resA2, 'class', 'data.frame')
-setattr(ind.resA2, "row.names", c(NA_integer_,4))
-setattr(ind.resA2, "names", make.names(names(ind.resA2), unique=TRUE))
-probelistnamesA2 = names(ind.resA2)
-all.resultsA2 = t(data.table(ind.resA2))
-all.resultsA2 = data.table(all.resultsA2)
-all.resultsA2[, probeID := probelistnamesA2]
-setnames(all.resultsA2, c("BETA","SE", "P_VAL", "probeID")) # rename columns
+all.resultsA2 <- data.frame(matrix(unlist(ind.resA2), nrow=length(ind.resA2), byrow=TRUE))
+# Assignem els noms que hi havia a la llista (la part superior de la llista) al camp probeID
+all.resultsA2$probeID <- names(ind.resA2)
+# Assignem el nom de les columnes del dataframe
+colnames(all.resultsA2) <- c("BETA","SE", "P_VAL", "probeID")
+# Ordenem columnes
 setcolorder(all.resultsA2, c("probeID","BETA","SE", "P_VAL"))
+
 rm(probelistnamesA2, ind.resA2)
 
 #Lambda calculation
@@ -560,14 +557,12 @@ system.time(ind.resB1 <- mclapply(setNames(seq_len(ncol(beta_matrix)), dimnames(
 Sys.time()
 
 #Process covariate and reffree adjsuted results
-setattr(ind.resB1, 'class', 'data.frame')
-setattr(ind.resB1, "row.names", c(NA_integer_,4))
-setattr(ind.resB1, "names", make.names(names(ind.resB1), unique=TRUE))
-probelistnamesB1 = names(ind.resB1)
-all.resultsB1 = t(data.table(ind.resB1))
-all.resultsB1 = data.table(all.resultsB1)
-all.resultsB1[, probeID := probelistnamesB1]
-setnames(all.resultsB1, c("BETA","SE", "P_VAL", "probeID")) # rename columns
+all.resultsB1 <- data.frame(matrix(unlist(ind.resB1), nrow=length(ind.resB1), byrow=TRUE))
+# Assignem els noms que hi havia a la llista (la part superior de la llista) al camp probeID
+all.resultsB1$probeID <- names(ind.resB1)
+# Assignem el nom de les columnes del dataframe
+colnames(all.resultsB1) <- c("BETA","SE", "P_VAL", "probeID")
+# Ordenem columnes
 setcolorder(all.resultsB1, c("probeID","BETA","SE", "P_VAL"))
 rm(probelistnamesB1, ind.resB1)
 
@@ -638,14 +633,12 @@ system.time(ind.resB2 <- mclapply(setNames(seq_len(ncol(beta_matrix)), dimnames(
 Sys.time()
 
 #Process covariate and reffree adjsuted results
-setattr(ind.resB2, 'class', 'data.frame')
-setattr(ind.resB2, "row.names", c(NA_integer_,4))
-setattr(ind.resB2, "names", make.names(names(ind.resB2), unique=TRUE))
-probelistnamesB2 = names(ind.resB2)
-all.resultsB2 = t(data.table(ind.resB2))
-all.resultsB2 = data.table(all.resultsB2)
-all.resultsB2[, probeID := probelistnamesB2]
-setnames(all.resultsB2, c("BETA","SE", "P_VAL", "probeID")) # rename columns
+all.resultsB2 <- data.frame(matrix(unlist(ind.resB2), nrow=length(ind.resB2), byrow=TRUE))
+# Assignem els noms que hi havia a la llista (la part superior de la llista) al camp probeID
+all.resultsB2$probeID <- names(ind.resB2)
+# Assignem el nom de les columnes del dataframe
+colnames(all.resultsB2) <- c("BETA","SE", "P_VAL", "probeID")
+# Ordenem columnes
 setcolorder(all.resultsB2, c("probeID","BETA","SE", "P_VAL"))
 rm(probelistnamesB2, ind.resB2)
 
@@ -765,14 +758,12 @@ system.time(ind.resC1 <- mclapply(setNames(seq_len(ncol(beta_matrix)), dimnames(
 Sys.time()
 
 #Process covariate and reffree adjsuted results
-setattr(ind.resC1, 'class', 'data.frame')
-setattr(ind.resC1, "row.names", c(NA_integer_,4))
-setattr(ind.resC1, "names", make.names(names(ind.resC1), unique=TRUE))
-probelistnamesC1 = names(ind.resC1)
-all.resultsC1 = t(data.table(ind.resC1))
-all.resultsC1 = data.table(all.resultsC1)
-all.resultsC1[, probeID := probelistnamesC1]
-setnames(all.resultsC1, c("BETA","SE", "P_VAL", "probeID")) # rename columns
+all.resultsC1 <- data.frame(matrix(unlist(ind.resC1), nrow=length(ind.resC1), byrow=TRUE))
+# Assignem els noms que hi havia a la llista (la part superior de la llista) al camp probeID
+all.resultsC1$probeID <- names(ind.resC1)
+# Assignem el nom de les columnes del dataframe
+colnames(all.resultsC1) <- c("BETA","SE", "P_VAL", "probeID")
+# Ordenem columnes
 setcolorder(all.resultsC1, c("probeID","BETA","SE", "P_VAL"))
 rm(probelistnamesC1, ind.resC1)
 
@@ -843,15 +834,14 @@ system.time(ind.resC2 <- mclapply(setNames(seq_len(ncol(beta_matrix)), dimnames(
 Sys.time()
 
 #Process covariate and reffree adjsuted results
-setattr(ind.resC2, 'class', 'data.frame')
-setattr(ind.resC2, "row.names", c(NA_integer_,4))
-setattr(ind.resC2, "names", make.names(names(ind.resC2), unique=TRUE))
-probelistnamesC2 = names(ind.resC2)
-all.resultsC2 = t(data.table(ind.resC2))
-all.resultsC2 = data.table(all.resultsC2)
-all.resultsC2[, probeID := probelistnamesC2]
-setnames(all.resultsC2, c("BETA","SE", "P_VAL", "probeID")) # rename columns
+all.resultsC2 <- data.frame(matrix(unlist(ind.resC2), nrow=length(ind.resC2), byrow=TRUE))
+# Assignem els noms que hi havia a la llista (la part superior de la llista) al camp probeID
+all.resultsC2$probeID <- names(ind.resC2)
+# Assignem el nom de les columnes del dataframe
+colnames(all.resultsC2) <- c("BETA","SE", "P_VAL", "probeID")
+# Ordenem columnes
 setcolorder(all.resultsC2, c("probeID","BETA","SE", "P_VAL"))
+
 rm(probelistnamesC2, ind.resC2)
 
 #Lambda calculation
@@ -979,14 +969,12 @@ system.time(ind.resD1 <- mclapply(setNames(seq_len(ncol(beta_matrix)), dimnames(
 Sys.time()
 
 #Process covariate and reffree adjsuted results
-setattr(ind.resD1, 'class', 'data.frame')
-setattr(ind.resD1, "row.names", c(NA_integer_,4))
-setattr(ind.resD1, "names", make.names(names(ind.resD1), unique=TRUE))
-probelistnamesD1 = names(ind.resD1)
-all.resultsD1 = t(data.table(ind.resD1))
-all.resultsD1 = data.table(all.resultsD1)
-all.resultsD1[, probeID := probelistnamesD1]
-setnames(all.resultsD1, c("BETA","SE", "P_VAL", "probeID")) # rename columns
+all.resultsD1 <- data.frame(matrix(unlist(ind.resD1), nrow=length(ind.resD1), byrow=TRUE))
+# Assignem els noms que hi havia a la llista (la part superior de la llista) al camp probeID
+all.resultsD1$probeID <- names(ind.resD1)
+# Assignem el nom de les columnes del dataframe
+colnames(all.resultsD1) <- c("BETA","SE", "P_VAL", "probeID")
+# Ordenem columnes
 setcolorder(all.resultsD1, c("probeID","BETA","SE", "P_VAL"))
 rm(probelistnamesD1, ind.resD1)
 
@@ -1057,14 +1045,12 @@ system.time(ind.resD2 <- mclapply(setNames(seq_len(ncol(beta_matrix)), dimnames(
 Sys.time()
 
 #Process covariate and reffree adjsuted results
-setattr(ind.resD2, 'class', 'data.frame')
-setattr(ind.resD2, "row.names", c(NA_integer_,4))
-setattr(ind.resD2, "names", make.names(names(ind.resD2), unique=TRUE))
-probelistnamesD2 = names(ind.resD2)
-all.resultsD2 = t(data.table(ind.resD2))
-all.resultsD2 = data.table(all.resultsD2)
-all.resultsD2[, probeID := probelistnamesD2]
-setnames(all.resultsD2, c("BETA","SE", "P_VAL", "probeID")) # rename columns
+all.resultsD2 <- data.frame(matrix(unlist(ind.resD2), nrow=length(ind.resD2), byrow=TRUE))
+# Assignem els noms que hi havia a la llista (la part superior de la llista) al camp probeID
+all.resultsD2$probeID <- names(ind.resD2)
+# Assignem el nom de les columnes del dataframe
+colnames(all.resultsD2) <- c("BETA","SE", "P_VAL", "probeID")
+# Ordenem columnes
 setcolorder(all.resultsD2, c("probeID","BETA","SE", "P_VAL"))
 rm(probelistnamesD2, ind.resD2)
 
@@ -1193,14 +1179,12 @@ system.time(ind.resA3 <- mclapply(setNames(seq_len(ncol(beta_matrix_NSP)), dimna
 Sys.time()
 
 #Process covariate adjusted results
-setattr(ind.resA3, 'class', 'data.frame')
-setattr(ind.resA3, "row.names", c(NA_integer_,4))
-setattr(ind.resA3, "names", make.names(names(ind.resA3), unique=TRUE))
-probelistnamesA3 = names(ind.resA3)
-all.resultsA3 = t(data.table(ind.resA3))
-all.resultsA3 = data.table(all.resultsA3)
-all.resultsA3[, probeID := probelistnamesA3]
-setnames(all.resultsA3, c("BETA","SE", "P_VAL", "probeID")) # rename columns
+all.resultsA3 <- data.frame(matrix(unlist(ind.resA3), nrow=length(ind.resA3), byrow=TRUE))
+# Assignem els noms que hi havia a la llista (la part superior de la llista) al camp probeID
+all.resultsA3$probeID <- names(ind.resA3)
+# Assignem el nom de les columnes del dataframe
+colnames(all.resultsA3) <- c("BETA","SE", "P_VAL", "probeID")
+# Ordenem columnes
 setcolorder(all.resultsA3, c("probeID","BETA","SE", "P_VAL"))
 rm(probelistnamesA3, ind.resA3)
 
@@ -1326,14 +1310,12 @@ system.time(ind.resB3 <- mclapply(setNames(seq_len(ncol(beta_matrix)), dimnames(
 Sys.time()
 
 #Process covariate and reffree adjsuted results
-setattr(ind.resB3, 'class', 'data.frame')
-setattr(ind.resB3, "row.names", c(NA_integer_,4))
-setattr(ind.resB3, "names", make.names(names(ind.resB3), unique=TRUE))
-probelistnamesB3 = names(ind.resB3)
-all.resultsB3 = t(data.table(ind.resB3))
-all.resultsB3 = data.table(all.resultsB3)
-all.resultsB3[, probeID := probelistnamesB3]
-setnames(all.resultsB3, c("BETA","SE", "P_VAL", "probeID")) # rename columns
+all.resultsB3 <- data.frame(matrix(unlist(ind.resB3), nrow=length(ind.resB3), byrow=TRUE))
+# Assignem els noms que hi havia a la llista (la part superior de la llista) al camp probeID
+all.resultsB3$probeID <- names(ind.resB3)
+# Assignem el nom de les columnes del dataframe
+colnames(all.resultsB3) <- c("BETA","SE", "P_VAL", "probeID")
+# Ordenem columnes
 setcolorder(all.resultsB3, c("probeID","BETA","SE", "P_VAL"))
 rm(probelistnamesB3, ind.resB3)
 
@@ -1456,14 +1438,12 @@ system.time(ind.resA4 <- mclapply(setNames(seq_len(ncol(beta_matrix)), dimnames(
 Sys.time()
 
 #Process covariate adjusted results
-setattr(ind.resA4, 'class', 'data.frame')
-setattr(ind.resA4, "row.names", c(NA_integer_,4))
-setattr(ind.resA4, "names", make.names(names(ind.resA4), unique=TRUE))
-probelistnamesA4 = names(ind.resA4)
-all.resultsA4 = t(data.table(ind.resA4))
-all.resultsA4 = data.table(all.resultsA4)
-all.resultsA4[, probeID := probelistnamesA4]
-setnames(all.resultsA4, c("BETA","SE", "P_VAL", "probeID")) # rename columns
+all.resultsA4 <- data.frame(matrix(unlist(ind.resA4), nrow=length(ind.resA4), byrow=TRUE))
+# Assignem els noms que hi havia a la llista (la part superior de la llista) al camp probeID
+all.resultsA4$probeID <- names(ind.resA4)
+# Assignem el nom de les columnes del dataframe
+colnames(all.resultsA4) <- c("BETA","SE", "P_VAL", "probeID")
+# Ordenem columnes
 setcolorder(all.resultsA4, c("probeID","BETA","SE", "P_VAL"))
 rm(probelistnamesA4, ind.resA4)
 
@@ -1584,14 +1564,12 @@ system.time(ind.resB4 <- mclapply(setNames(seq_len(ncol(beta_matrix)), dimnames(
 Sys.time()
 
 #Process covariate and reffree adjsuted results
-setattr(ind.resB4, 'class', 'data.frame')
-setattr(ind.resB4, "row.names", c(NA_integer_,4))
-setattr(ind.resB4, "names", make.names(names(ind.resB4), unique=TRUE))
-probelistnamesB4 = names(ind.resB4)
-all.resultsB4 = t(data.table(ind.resB4))
-all.resultsB4 = data.table(all.resultsB4)
-all.resultsB4[, probeID := probelistnamesB4]
-setnames(all.resultsB4, c("BETA","SE", "P_VAL", "probeID")) # rename columns
+all.resultsB4 <- data.frame(matrix(unlist(ind.resB4), nrow=length(ind.resB4), byrow=TRUE))
+# Assignem els noms que hi havia a la llista (la part superior de la llista) al camp probeID
+all.resultsB4$probeID <- names(ind.resB4)
+# Assignem el nom de les columnes del dataframe
+colnames(all.resultsB4) <- c("BETA","SE", "P_VAL", "probeID")
+# Ordenem columnes
 setcolorder(all.resultsB4, c("probeID","BETA","SE", "P_VAL"))
 rm(probelistnamesB4, ind.resB4)
 
