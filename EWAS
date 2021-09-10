@@ -308,8 +308,8 @@ table(ifelse(rownames(omegas)==rownames(beta_matrix),"MATCHED","Not Matched"))
 
 #Add function for running the model 
 
-RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X5, X6, X7, X8, X9) {
-    mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+X8+X9,maxit=200))
+RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X5, X6, X7, X9) {
+    mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+X9,maxit=200))
     if(class(mod) == "try-error"){
         print(paste("error thrown by column", methcol))
         invisible(rep(NA, 3))
@@ -341,7 +341,7 @@ system.time(ind.resA1 <- mclapply(setNames(seq_len(ncol(beta_matrix)), dimnames(
                                  , X5=PHENO[,12]	# Maternal smoking during pregnancy
                                  , X6=PHENO[,13]	# Neighborhood SES
                                  , X7=PHENO[,14]	# Season of conception
-                                 , X8=PHENO[,15]	# Ethnicity  
+                                 #, X8=PHENO[,15]	# Ethnicity  
                                  , X9=PHENO[,2]	  #  Cohort
 ))
 Sys.time()
@@ -379,8 +379,8 @@ gzip("PACE_EPIC_ModelA1_30-08f.txt")
 
 #Add function for running the model 
 
-RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X5, X6, X7, X8, X9, cell1, cell2, cell3, cell4, cell5, cell6, cell7) {
-    mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+X8+X9+cell1+cell2+cell3+cell4+cell5+cell6+cell7,maxit=200))
+RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X5, X6, X7, X9, cell1, cell2, cell3, cell4, cell5, cell6, cell7) {
+    mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+X9+cell1+cell2+cell3+cell4+cell5+cell6+cell7,maxit=200))
     if(class(mod) == "try-error"){
         print(paste("error thrown by column", methcol))
         invisible(rep(NA, 3))
@@ -411,7 +411,7 @@ system.time(ind.resA2 <- mclapply(setNames(seq_len(ncol(beta_matrix)), dimnames(
                                   , X5=PHENO[,12]	# Maternal smoking during pregnancy
                                   , X6=PHENO[,13]	# Neighborhood SES
                                   , X7=PHENO[,14]	# Season of conception
-                                  , X8=PHENO[,15]	# ancestry  
+                                  #, X8=PHENO[,15]	# ancestry  
                                   , X9=PHENO[,2]	#  Cohort
                                   , cell1 = omegas[,1]
                                   , cell2 = omegas[,2]
@@ -522,8 +522,8 @@ write.table(desc, "PACE_INMA_CpG_summary_31-08.txt", sep = "\t", col.names = T, 
 
 #Add function for running the model 
 
-RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X5, X6, X7, X8, X9) {
-    mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+X8+X9,maxit=200))
+RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X5, X6, X7, X9) {
+    mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+X9,maxit=200))
     if(class(mod) == "try-error"){
         print(paste("error thrown by column", methcol))
         invisible(rep(NA, 3))
@@ -551,7 +551,7 @@ system.time(ind.resB1 <- mclapply(setNames(seq_len(ncol(beta_matrix)), dimnames(
                                  , X5=PHENO[,12]	# Maternal smoking during pregnancy
                                  , X6=PHENO[,13]	# Neighborhood SES
                                  , X7=PHENO[,14]	# Season of conception
-                                 , X8=PHENO[,15]	# ancestry  
+                                 #, X8=PHENO[,15]	# ancestry  
                                  , X9=PHENO[,2]	#  Cohort
 ))
 Sys.time()
@@ -592,8 +592,8 @@ gzip("PACE_EPIC_ModelB1_31-08.txt")
 
 #Add function for running the model 
 
-RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X5, X6, X7, X8, X9, cell1, cell2, cell3, cell4, cell5, cell6, cell7) {
-    mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+X8+X9+cell1+cell2+cell3+cell4+cell5+cell6+cell7,maxit=200))
+RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X5, X6, X7, X9, cell1, cell2, cell3, cell4, cell5, cell6, cell7) {
+    mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+X9+cell1+cell2+cell3+cell4+cell5+cell6+cell7,maxit=200))
     if(class(mod) == "try-error"){
         print(paste("error thrown by column", methcol))
         invisible(rep(NA, 3))
@@ -620,7 +620,7 @@ system.time(ind.resB2 <- mclapply(setNames(seq_len(ncol(beta_matrix)), dimnames(
                                   , X5=PHENO[,12]	# Maternal smoking during pregnancy
                                   , X6=PHENO[,13]	# neighbourhood SES 
                                   , X7=PHENO[,14]	# Season of conception
-                                  , X8=PHENO[,15]	# ancestry  
+                                  #, X8=PHENO[,15]	# ancestry  
                                   , X9=PHENO[,2]	#  Cohort  
                                   , cell1 = omegas[,1]
                                   , cell2 = omegas[,2]
@@ -724,8 +724,8 @@ table(ifelse(rownames(omegas)==rownames(beta_matrix),"MATCHED","Not Matched"))
 #### Modeling with covariate and cell-mix adjustment
 
 #Add function for running the model 
-RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X5, X6, X7, X8) {
-    mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+X8 ,maxit=200))
+RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X5, X6, X7) {
+    mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7 ,maxit=200))
     if(class(mod) == "try-error"){
         print(paste("error thrown by column", methcol))
         invisible(rep(NA, 3))
@@ -753,7 +753,7 @@ system.time(ind.resC1 <- mclapply(setNames(seq_len(ncol(beta_matrix)), dimnames(
                                   , X5=PHENO[,12]	# Maternal smoking during pregnancy
                                   , X6=PHENO[,13]	# Neighborhood SES
                                   , X7=PHENO[,14]	# Season of conception
-                                  , X8=PHENO[,15]	# ancestry  
+                                  #, X8=PHENO[,15]	# ancestry  
 ))
 Sys.time()
 
@@ -774,13 +774,13 @@ lambdaC1 = qchisq(median(all.resultsC1$P_VAL,na.rm=T), df = 1, lower.tail = F)/
 NC1 = nrow(beta_matrix) #make sure that this is the sample size of the analysis (no missings in covariates)
 
 #Q-Q plots
-pdf("PACE_EPIC_ModelC1_QQ_Plot_31-08.pdf")
+pdf("PACE_EPIC_ModelC1_QQ_Plot_31-08_NA.pdf")
 qq(all.resultsC1$P_VAL,main="PACE_EPIC_QQ-plot")
 dev.off()
 
 # export table of results
-write.table(all.resultsC1, "PACE_EPIC_ModelC1_31-08.txt",na="NA")
-gzip("PACE_EPIC_ModelC1_31-08.txt")
+write.table(all.resultsC1, "PACE_EPIC_ModelC1_31-08_NA.txt",na="NA")
+gzip("PACE_EPIC_ModelC1_31-08_NA.txt")
 
 ################################################################################
 ########################## Model C2 ############################################
@@ -794,8 +794,8 @@ gzip("PACE_EPIC_ModelC1_31-08.txt")
 
 #Add function for running the model 
 
-RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X5, X6, X7, X8, cell1, cell2, cell3, cell4, cell5, cell6, cell7) {
-    mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+X8+cell1+cell2+cell3+cell4+cell5+cell6+cell7,maxit=200))
+RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X5, X6, X7, cell1, cell2, cell3, cell4, cell5, cell6, cell7) {
+    mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+cell1+cell2+cell3+cell4+cell5+cell6+cell7,maxit=200))
     if(class(mod) == "try-error"){
         print(paste("error thrown by column", methcol))
         invisible(rep(NA, 3))
@@ -822,7 +822,7 @@ system.time(ind.resC2 <- mclapply(setNames(seq_len(ncol(beta_matrix)), dimnames(
                                   , X5=PHENO[,12]	# Maternal smoking during pregnancy
                                   , X6=PHENO[,13]	# neighbourhood SES 
                                   , X7=PHENO[,14]	# Season of conception
-                                  , X8=PHENO[,15]	# ancestry  
+                                  #, X8=PHENO[,15]	# ancestry  
                                   , cell1 = omegas[,1]
                                   , cell2 = omegas[,2]
                                   , cell3 = omegas[,3]
@@ -928,8 +928,8 @@ table(ifelse(rownames(omegas)==rownames(beta_matrix),"MATCHED","Not Matched"))
 
 #Add function for running the model 
 
-RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3,X4,X5,X6,X7,X8) {
-  mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+X8,maxit=200))
+RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3,X4,X5,X6,X7) {
+  mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7,maxit=200))
   if(class(mod) == "try-error"){
     print(paste("error thrown by column", methcol))
     invisible(rep(NA, 3))
@@ -937,8 +937,8 @@ RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3,X4,X5,X6,X7,X8) {
     cf = coeftest(mod, vcov=vcovHC(mod, type="HC0"))
   cf[2, c("Estimate", "Std. Error", "Pr(>|z|)")]
 }
-RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X5, X6, X7, X8) {
-    mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+X8,maxit=200))
+RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X5, X6, X7) {
+    mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7,maxit=200))
     if(class(mod) == "try-error"){
         print(paste("error thrown by column", methcol))
         invisible(rep(NA, 3))
@@ -964,7 +964,7 @@ system.time(ind.resD1 <- mclapply(setNames(seq_len(ncol(beta_matrix)), dimnames(
                                   , X5=PHENO[,12]	# Maternal smoking during pregnancy
                                   , X6=PHENO[,13]	# Neighborhood SES
                                   , X7=PHENO[,14]	# Season of conception
-                                  , X8=PHENO[,15]	# ancestry  
+                                  #, X8=PHENO[,15]	# ancestry  
 ))
 Sys.time()
 
@@ -1005,8 +1005,8 @@ gzip("PACE_INMA_ModelD1_31-08.txt")
 
 #Add function for running the model 
 
-RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X5, X6, X7, X8, cell1, cell2, cell3, cell4, cell5, cell6, cell7) {
-    mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+X8+cell1+cell2+cell3+cell4+cell5+cell6+cell7,maxit=200))
+RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X5, X6, X7, cell1, cell2, cell3, cell4, cell5, cell6, cell7) {
+    mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+cell1+cell2+cell3+cell4+cell5+cell6+cell7,maxit=200))
     if(class(mod) == "try-error"){
         print(paste("error thrown by column", methcol))
         invisible(rep(NA, 3))
@@ -1033,7 +1033,7 @@ system.time(ind.resD2 <- mclapply(setNames(seq_len(ncol(beta_matrix)), dimnames(
                                   , X5=PHENO[,12]	# Maternal smoking during pregnancy
                                   , X6=PHENO[,13]	# neighbourhood SES 
                                   , X7=PHENO[,14]	# Season of conception
-                                  , X8=PHENO[,15]	# ancestry  
+                                  #, X8=PHENO[,15]	# ancestry  
                                   , cell1 = omegas[,1]
                                   , cell2 = omegas[,2]
                                   , cell3 = omegas[,3]
@@ -1138,8 +1138,8 @@ table(ifelse(rownames(omegas_NSP)==rownames(beta_matrix_NSP),"MATCHED","Not Matc
 
 #Add function for running the model (4 covariates)
 
-RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X5, X6, X7, X8, cell1, cell2, cell3, cell4, cell5, cell6, cell7) {
-    mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+X8+cell1+cell2+cell3+cell4+cell5+cell6+cell7,maxit=200))
+RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X5, X6, X8, cell1, cell2, cell3, cell4, cell5, cell6, cell7) {
+    mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X8+cell1+cell2+cell3+cell4+cell5+cell6+cell7,maxit=200))
     if(class(mod) == "try-error"){
         print(paste("error thrown by column", methcol))
         invisible(rep(NA, 3))
@@ -1165,7 +1165,7 @@ system.time(ind.resA3 <- mclapply(setNames(seq_len(ncol(beta_matrix_NSP)), dimna
                                  , X4=PHENO_NSP[,11]	# Maternal education  -- 78 <-"estudios3c"
                                  , X5=PHENO_NSP[,13]	# neighbourhood SES
                                  , X6=PHENO_NSP[,14]	# Season of conception
-                                 , X7=PHENO_NSP[,15]	# ancestry
+                                 #, X7=PHENO_NSP[,15]	# ancestry
                                  , X8=PHENO_NSP[,2]	  # cohort
                                  , cell1 = omegas_NSP[,1]# Houseman free r.e. -- Omegas[,1]
                                  , cell2 = omegas_NSP[,2]# Houseman free r.e. -- Omegas[,2]
@@ -1268,8 +1268,8 @@ table(ifelse(rownames(omegas)==rownames(beta_matrix),"MATCHED","Not Matched"))
 #### Modeling with covariate adjustment
 
 #Add function for running the model (4 covariates)
-RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X5, X6, X7, X8, cell1, cell2, cell3, cell4, cell5, cell6, cell7) {
-    mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+X8+cell1+cell2+cell3+cell4+cell5+cell6+cell7,maxit=200))
+RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X5, X6, X8, cell1, cell2, cell3, cell4, cell5, cell6, cell7) {
+    mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X8+cell1+cell2+cell3+cell4+cell5+cell6+cell7,maxit=200))
     if(class(mod) == "try-error"){
         print(paste("error thrown by column", methcol))
         invisible(rep(NA, 3))
@@ -1295,7 +1295,7 @@ system.time(ind.resB3 <- mclapply(setNames(seq_len(ncol(beta_matrix)), dimnames(
                                  , X4=PHENO[,11]	# Maternal education  -- 78 <-"estudios3c"
                                  , X5=PHENO[,13]	# neighbourhood SES
                                  , X6=PHENO[,14]	# Season of conception
-                                 , X7=PHENO[,15]	# ancestry
+                                 #, X7=PHENO[,15]	# ancestry
                                  , X8=PHENO[,2]	  # cohort
                                  , cell1 = omegas[,1]
                                  , cell2 = omegas[,2]
