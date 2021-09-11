@@ -1694,115 +1694,171 @@ dev.off()
 
 
 #################################################################################
-# step 9: Top 100 most significants of each model (+annotation)  ### canviar noms d'arxius i variables
+# step 9: Top significant of each model (+annotation)  
 
-#annotation to a dataframe
-annot.df<-as.data.frame(annot)
-FDR<-p.adjust(pvals, method = "bonferroni")
 pvthresh<- 1e-5
 
-EASIER::get_annotattions()
+all.resultsA1$Q_VAL<-p.adjust(all.resultsA1$P_VAL, method = "fdr")
 SigResA1<-all.resultsA1[all.resultsA1$P_VAL<pvthresh,]
+FDR_A1<-all.resultsA1[all.resultsA1$Q_VAL<0.05,]
 TopResA1<-SigResA1[order(SigResA1$P_VAL), ]
-TopResA1 <- merge(TopResA1,annot.df[,c("Name","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
+AnnotA1<-EASIER::get_annotattions(all.resultsA1$probeID,"EPIC","AnotatedA1.txt","/home/isglobal.lan/jaumatell/data/WS_INMA/Methylation_INMA/PACE/airpollution_placenta/results/INMA/EPIC/Enrichment/")
+TopResA1 <- merge(TopResA1,AnnotA1[,c("Name","chr","pos","strand","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
 TopResA1<-TopResA1[order(TopResA1$P_VAL),]
-TopResA1$EASIERANOT<-EASIER::get_annotattions(TpoResA1$probeID,artype = "EPIC")
+length(unique(AnnotA1[AnnotA1$Name %in% FDR_A1$probeID,"UCSC_RefGene_Name"]))
 dim(all.resultsA1)
-dim(SigResA1)
+dim(TopResA1)
+dim(FDR_A1)
 write.table(TopResA1, "PACE_EPIC_ModelA1_15-08_TopResults.txt",na="NA")
 
 
+all.resultsB1$Q_VAL<-p.adjust(all.resultsB1$P_VAL, method = "fdr")
 SigResB1<-all.resultsB1[all.resultsB1$P_VAL<pvthresh,]
+FDR_B1<-all.resultsB1[all.resultsB1$Q_VAL<0.05,]
 TopResB1<-SigResB1[order(SigResB1$P_VAL), ]
-TopResB1 <- merge(TopResB1,annot.df[,c("Name","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
+AnnotB1<-EASIER::get_annotattions(all.resultsB1$probeID,"EPIC","AnotatedB1.txt","/home/isglobal.lan/jaumatell/data/WS_INMA/Methylation_INMA/PACE/airpollution_placenta/results/INMA/EPIC/Enrichment/")
+TopResB1 <- merge(TopResB1,AnnotB1[,c("Name","chr","pos","strand","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
 TopResB1<-TopResB1[order(TopResB1$P_VAL),]
+length(unique(AnnotB1[AnnotB1$Name %in% FDR_B1$probeID,"UCSC_RefGene_Name"]))
 dim(all.resultsB1)
-dim(SigResB1)
-write.table(TopResB1, "PACE_EPIC_ModelB1_19-05_TopResults.txt",na="NA")
+dim(TopResB1)
+dim(FDR_B1)
+write.table(TopResB1, "PACE_EPIC_ModelB1_15-08_TopResults.txt",na="NA")
 
+
+all.resultsC1$Q_VAL<-p.adjust(all.resultsC1$P_VAL, method = "fdr")
 SigResC1<-all.resultsC1[all.resultsC1$P_VAL<pvthresh,]
+FDR_C1<-all.resultsC1[all.resultsC1$Q_VAL<0.05,]
 TopResC1<-SigResC1[order(SigResC1$P_VAL), ]
-TopResC1 <- merge(TopResC1,annot.df[,c("Name","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
+AnnotC1<-EASIER::get_annotattions(all.resultsC1$probeID,"EPIC","AnotatedC1.txt","/home/isglobal.lan/jaumatell/data/WS_INMA/Methylation_INMA/PACE/airpollution_placenta/results/INMA/EPIC/Enrichment/")
+TopResC1 <- merge(TopResC1,AnnotC1[,c("Name","chr","pos","strand","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
 TopResC1<-TopResC1[order(TopResC1$P_VAL),]
+length(unique(AnnotC1[AnnotC1$Name %in% FDR_C1$probeID,"UCSC_RefGene_Name"]))
 dim(all.resultsC1)
-dim(SigResC1)
-write.table(TopResC1, "PACE_EPIC_ModelC1_19-05_TopResults.txt",na="NA")
+dim(TopResC1)
+dim(FDR_C1)
+write.table(TopResC1, "PACE_EPIC_ModelC1_15-08_TopResults.txt",na="NA")
 
+all.resultsD1$Q_VAL<-p.adjust(all.resultsD1$P_VAL, method = "fdr")
 SigResD1<-all.resultsD1[all.resultsD1$P_VAL<pvthresh,]
+FDR_D1<-all.resultsD1[all.resultsD1$Q_VAL<0.05,]
 TopResD1<-SigResD1[order(SigResD1$P_VAL), ]
-TopResD1 <- merge(TopResD1,annot.df[,c("Name","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
+AnnotD1<-EASIER::get_annotattions(all.resultsD1$probeID,"EPIC","AnotatedD1.txt","/home/isglobal.lan/jaumatell/data/WS_INMA/Methylation_INMA/PACE/airpollution_placenta/results/INMA/EPIC/Enrichment/")
+TopResD1 <- merge(TopResD1,AnnotD1[,c("Name","chr","pos","strand","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
 TopResD1<-TopResD1[order(TopResD1$P_VAL),]
+length(unique(AnnotD1[AnnotD1$Name %in% FDR_D1$probeID,"UCSC_RefGene_Name"]))
 dim(all.resultsD1)
-dim(SigResD1)
-write.table(TopResD1, "PACE_EPIC_ModelD1_19-05_TopResults.txt",na="NA")
+dim(TopResD1)
+dim(FDR_D1)
+write.table(TopResD1, "PACE_EPIC_ModelD1_15-08_TopResults.txt",na="NA")
 
+all.resultsA2$Q_VAL<-p.adjust(all.resultsA2$P_VAL, method = "fdr")
 SigResA2<-all.resultsA2[all.resultsA2$P_VAL<pvthresh,]
+FDR_A2<-all.resultsA2[all.resultsA2$Q_VAL<0.05,]
 TopResA2<-SigResA2[order(SigResA2$P_VAL), ]
-TopResA2 <- merge(TopResA2,annot.df[,c("Name","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
+AnnotA2<-EASIER::get_annotattions(all.resultsA2$probeID,"EPIC","AnotatedA2.txt","/home/isglobal.lan/jaumatell/data/WS_INMA/Methylation_INMA/PACE/airpollution_placenta/results/INMA/EPIC/Enrichment/")
+TopResA2 <- merge(TopResA2,AnnotA2[,c("Name","chr","pos","strand","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
 TopResA2<-TopResA2[order(TopResA2$P_VAL),]
+length(unique(AnnotA2[AnnotA2$Name %in% FDR_A2$probeID,"UCSC_RefGene_Name"]))
 dim(all.resultsA2)
-dim(SigResA2)
+dim(TopResA2)
+dim(FDR_A2)
 write.table(TopResA2, "PACE_EPIC_ModelA2_15-08_TopResults.txt",na="NA")
 
 
+all.resultsB2$Q_VAL<-p.adjust(all.resultsB2$P_VAL, method = "fdr")
 SigResB2<-all.resultsB2[all.resultsB2$P_VAL<pvthresh,]
+FDR_B2<-all.resultsB2[all.resultsB2$Q_VAL<0.05,]
 TopResB2<-SigResB2[order(SigResB2$P_VAL), ]
-TopResB2 <- merge(TopResB2,annot.df[,c("Name","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
+AnnotB2<-EASIER::get_annotattions(all.resultsB2$probeID,"EPIC","AnotatedB2.txt","/home/isglobal.lan/jaumatell/data/WS_INMA/Methylation_INMA/PACE/airpollution_placenta/results/INMA/EPIC/Enrichment/")
+TopResB2 <- merge(TopResB2,AnnotB2[,c("Name","chr","pos","strand","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
 TopResB2<-TopResB2[order(TopResB2$P_VAL),]
+length(unique(AnnotB2[AnnotB2$Name %in% FDR_B2$probeID,"UCSC_RefGene_Name"]))
 dim(all.resultsB2)
-dim(SigResB2)
-write.table(TopResB2, "PACE_EPIC_ModelB2_19-05_TopResults.txt",na="NA")
+dim(TopResB2)
+dim(FDR_B2)
+write.table(TopResB2, "PACE_EPIC_ModelB2_15-08_TopResults.txt",na="NA")
 
 
+all.resultsC2$Q_VAL<-p.adjust(all.resultsC2$P_VAL, method = "fdr")
 SigResC2<-all.resultsC2[all.resultsC2$P_VAL<pvthresh,]
+FDR_C2<-all.resultsC2[all.resultsC2$Q_VAL<0.05,]
 TopResC2<-SigResC2[order(SigResC2$P_VAL), ]
-TopResC2 <- merge(TopResC2,annot.df[,c("Name","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
+AnnotC2<-EASIER::get_annotattions(all.resultsC2$probeID,"EPIC","AnotatedC2.txt","/home/isglobal.lan/jaumatell/data/WS_INMA/Methylation_INMA/PACE/airpollution_placenta/results/INMA/EPIC/Enrichment/")
+TopResC2 <- merge(TopResC2,AnnotC2[,c("Name","chr","pos","strand","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
 TopResC2<-TopResC2[order(TopResC2$P_VAL),]
+length(unique(AnnotC2[AnnotC2$Name %in% FDR_C2$probeID,"UCSC_RefGene_Name"]))
 dim(all.resultsC2)
-dim(SigResC2)
-write.table(TopResC2, "PACE_EPIC_ModelC2_19-05_TopResults.txt",na="NA")
+dim(TopResC2)
+dim(FDR_C2)
+write.table(TopResC2, "PACE_EPIC_ModelC2_15-08_TopResults.txt",na="NA")
 
 
+all.resultsD2$Q_VAL<-p.adjust(all.resultsD2$P_VAL, method = "fdr")
 SigResD2<-all.resultsD2[all.resultsD2$P_VAL<pvthresh,]
+FDR_D2<-all.resultsD2[all.resultsD2$Q_VAL<0.05,]
 TopResD2<-SigResD2[order(SigResD2$P_VAL), ]
-TopResD2 <- merge(TopResD2,annot.df[,c("Name","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
+AnnotD2<-EASIER::get_annotattions(all.resultsD2$probeID,"EPIC","AnotatedD2.txt","/home/isglobal.lan/jaumatell/data/WS_INMA/Methylation_INMA/PACE/airpollution_placenta/results/INMA/EPIC/Enrichment/")
+TopResD2 <- merge(TopResD2,AnnotD2[,c("Name","chr","pos","strand","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
 TopResD2<-TopResD2[order(TopResD2$P_VAL),]
+length(unique(AnnotD2[AnnotD2$Name %in% FDR_D2$probeID,"UCSC_RefGene_Name"]))
 dim(all.resultsD2)
-dim(SigResD2)
-write.table(TopResD2, "PACE_EPIC_ModelD2_19-05_TopResults.txt",na="NA")
+dim(TopResD2)
+dim(FDR_D2)
+write.table(TopResD2, "PACE_EPIC_ModelD2_15-08_TopResults.txt",na="NA")
 
 
+all.resultsA3$Q_VAL<-p.adjust(all.resultsA3$P_VAL, method = "fdr")
 SigResA3<-all.resultsA3[all.resultsA3$P_VAL<pvthresh,]
+FDR_A3<-all.resultsA3[all.resultsA3$Q_VAL<0.05,]
 TopResA3<-SigResA3[order(SigResA3$P_VAL), ]
-TopResA3 <- merge(TopResA3,annot.df[,c("Name","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
+AnnotA3<-EASIER::get_annotattions(all.resultsA3$probeID,"EPIC","AnotatedA3.txt","/home/isglobal.lan/jaumatell/data/WS_INMA/Methylation_INMA/PACE/airpollution_placenta/results/INMA/EPIC/Enrichment/")
+TopResA3 <- merge(TopResA3,AnnotA3[,c("Name","chr","pos","strand","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
 TopResA3<-TopResA3[order(TopResA3$P_VAL),]
+length(unique(AnnotA3[AnnotA3$Name %in% FDR_A3$probeID,"UCSC_RefGene_Name"]))
 dim(all.resultsA3)
-dim(SigResA3)
+dim(TopResA3)
+dim(FDR_A3)
 write.table(TopResA3, "PACE_EPIC_ModelA3_15-08_TopResults.txt",na="NA")
 
+all.resultsB3$Q_VAL<-p.adjust(all.resultsB3$P_VAL, method = "fdr")
 SigResB3<-all.resultsB3[all.resultsB3$P_VAL<pvthresh,]
+FDR_B3<-all.resultsB3[all.resultsB3$Q_VAL<0.05,]
 TopResB3<-SigResB3[order(SigResB3$P_VAL), ]
-TopResB3 <- merge(TopResB3,annot.df[,c("Name","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
+AnnotB3<-EASIER::get_annotattions(all.resultsB3$probeID,"EPIC","AnotatedB3.txt","/home/isglobal.lan/jaumatell/data/WS_INMA/Methylation_INMA/PACE/airpollution_placenta/results/INMA/EPIC/Enrichment/")
+TopResB3 <- merge(TopResB3,AnnotB3[,c("Name","chr","pos","strand","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
 TopResB3<-TopResB3[order(TopResB3$P_VAL),]
+length(unique(AnnotB3[AnnotB3$Name %in% FDR_B3$probeID,"UCSC_RefGene_Name"]))
 dim(all.resultsB3)
-dim(SigResB3)
-write.table(TopResB3, "PACE_EPIC_ModelB3_19-05_TopResults.txt",na="NA")
+dim(TopResB3)
+dim(FDR_B3)
+write.table(TopResB3, "PACE_EPIC_ModelB3_15-08_TopResults.txt",na="NA")
 
+all.resultsA4$Q_VAL<-p.adjust(all.resultsA4$P_VAL, method = "fdr")
 SigResA4<-all.resultsA4[all.resultsA4$P_VAL<pvthresh,]
+FDR_A4<-all.resultsA4[all.resultsA4$Q_VAL<0.05,]
 TopResA4<-SigResA4[order(SigResA4$P_VAL), ]
-TopResA4 <- merge(TopResA4,annot.df[,c("Name","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
+AnnotA4<-EASIER::get_annotattions(all.resultsA4$probeID,"EPIC","AnotatedA4.txt","/home/isglobal.lan/jaumatell/data/WS_INMA/Methylation_INMA/PACE/airpollution_placenta/results/INMA/EPIC/Enrichment/")
+TopResA4 <- merge(TopResA4,AnnotA4[,c("Name","chr","pos","strand","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
 TopResA4<-TopResA4[order(TopResA4$P_VAL),]
+length(unique(AnnotA4[AnnotA4$Name %in% FDR_A4$probeID,"UCSC_RefGene_Name"]))
 dim(all.resultsA4)
-dim(SigResA4)
+dim(TopResA4)
+dim(FDR_A4)
 write.table(TopResA4, "PACE_EPIC_ModelA4_15-08_TopResults.txt",na="NA")
 
+all.resultsB4$Q_VAL<-p.adjust(all.resultsB4$P_VAL, method = "fdr")
 SigResB4<-all.resultsB4[all.resultsB4$P_VAL<pvthresh,]
+FDR_B4<-all.resultsB4[all.resultsB4$Q_VAL<0.05,]
 TopResB4<-SigResB4[order(SigResB4$P_VAL), ]
-TopResB4 <- merge(TopResB4,annot.df[,c("Name","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
+AnnotB4<-EASIER::get_annotattions(all.resultsB4$probeID,"EPIC","AnotatedB4.txt","/home/isglobal.lan/jaumatell/data/WS_INMA/Methylation_INMA/PACE/airpollution_placenta/results/INMA/EPIC/Enrichment/")
+TopResB4 <- merge(TopResB4,AnnotB4[,c("Name","chr","pos","strand","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
 TopResB4<-TopResB4[order(TopResB4$P_VAL),]
+length(unique(AnnotB4[AnnotB4$Name %in% FDR_B4$probeID,"UCSC_RefGene_Name"]))
 dim(all.resultsB4)
-dim(SigResB4)
-write.table(TopResB4, "PACE_EPIC_ModelB4_19-05_TopResults.txt",na="NA")
+dim(TopResB4)
+dim(FDR_B4)
+write.table(TopResB4, "PACE_EPIC_ModelB4_15-08_TopResults.txt",na="NA")
 
 
 
