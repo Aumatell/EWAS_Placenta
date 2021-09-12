@@ -1699,6 +1699,8 @@ FDR_A1<-TopResA1[order(FDR_A1$Q_VAL),]
 AnnotA1<-EASIER::get_annotattions(all.resultsA1$probeID,"EPIC","AnotatedA1.txt","/home/isglobal.lan/jaumatell/data/WS_INMA/Methylation_INMA/PACE/airpollution_placenta/results/INMA/EPIC/Enrichment/")
 TopResA1 <- merge(TopResA1,AnnotA1[,c("Name","chr","pos","strand","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
 FDR_A1<-merge(FDR_A1,AnnotA1[,c("Name","chr","pos","strand","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
+names(TopResA1)[names(TopResA1)=="probeID"] <- "CpGs"
+TopResA1$rs_numberer<-TopResA1$BETA
 #Suggestive CpGs, FDR CpGs, Suggestive genes, FDR genes
 dim(TopResA1)
 dim(FDR_A1)
@@ -1719,6 +1721,8 @@ FDR_B1<-TopResB1[order(FDR_B1$Q_VAL),]
 AnnotB1<-EASIER::get_annotattions(all.resultsB1$probeID,"EPIC","AnotatedB1.txt","/home/isglobal.lan/jaumatell/data/WS_INMA/Methylation_INMA/PACE/airpollution_placenta/results/INMA/EPIC/Enrichment/")
 TopResB1 <- merge(TopResB1,AnnotB1[,c("Name","chr","pos","strand","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
 FDR_B1<-merge(FDR_B1,AnnotB1[,c("Name","chr","pos","strand","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
+names(TopResB1)[names(TopResB1)=="probeID"] <- "CpGs"
+TopResB1$rs_numberer<-TopResB1$BETA
 #Suggestive CpGs, FDR CpGs, Suggestive genes, FDR genes
 dim(TopResB1)
 dim(FDR_B1)
@@ -1777,6 +1781,8 @@ FDR_A2<-TopResA2[order(FDR_A2$Q_VAL),]
 AnnotA2<-EASIER::get_annotattions(all.resultsA2$probeID,"EPIC","AnotatedA2.txt","/home/isglobal.lan/jaumatell/data/WS_INMA/Methylation_INMA/PACE/airpollution_placenta/results/INMA/EPIC/Enrichment/")
 TopResA2 <- merge(TopResA2,AnnotA2[,c("Name","chr","pos","strand","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
 FDR_A2<-merge(FDR_A2,AnnotA2[,c("Name","chr","pos","strand","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
+names(TopResA2)[names(TopResA2)=="probeID"] <- "CpGs"
+TopResA2$rs_numberer<-TopResA2$BETA
 #Suggestive CpGs, FDR CpGs, Suggestive genes, FDR genes
 dim(TopResA2)
 dim(FDR_A2)
@@ -1797,6 +1803,8 @@ FDR_B2<-TopResB2[order(FDR_B2$Q_VAL),]
 AnnotB2<-EASIER::get_annotattions(all.resultsB2$probeID,"EPIC","AnotatedB2.txt","/home/isglobal.lan/jaumatell/data/WS_INMA/Methylation_INMA/PACE/airpollution_placenta/results/INMA/EPIC/Enrichment/")
 TopResB2 <- merge(TopResB2,AnnotB2[,c("Name","chr","pos","strand","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
 FDR_B2<-merge(FDR_B2,AnnotB2[,c("Name","chr","pos","strand","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
+names(TopResB2)[names(TopResB2)=="probeID"] <- "CpGs"
+TopResB2$rs_numberer<-TopResB2$BETA
 #Suggestive CpGs, FDR CpGs, Suggestive genes, FDR genes
 dim(TopResB2)
 dim(FDR_B2)
@@ -1816,6 +1824,8 @@ FDR_C2<-TopResC2[order(FDR_C2$Q_VAL),]
 AnnotC2<-EASIER::get_annotattions(all.resultsC2$probeID,"EPIC","AnotatedC2.txt","/home/isglobal.lan/jaumatell/data/WS_INMA/Methylation_INMA/PACE/airpollution_placenta/results/INMA/EPIC/Enrichment/")
 TopResC2 <- merge(TopResC2,AnnotC2[,c("Name","chr","pos","strand","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
 FDR_C2<-merge(FDR_C2,AnnotC2[,c("Name","chr","pos","strand","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
+names(TopResC2)[names(TopResC2)=="probeID"] <- "CpGs"
+TopResC2$rs_numberer<-TopResC2$BETA
 #Suggestive CpGs, FDR CpGs, Suggestive genes, FDR genes
 dim(TopResC2)
 dim(FDR_C2)
@@ -1836,6 +1846,8 @@ FDR_D2<-TopResD2[order(FDR_D2$Q_VAL),]
 AnnotD2<-EASIER::get_annotattions(all.resultsD2$probeID,"EPIC","AnotatedD2.txt","/home/isglobal.lan/jaumatell/data/WS_INMA/Methylation_INMA/PACE/airpollution_placenta/results/INMA/EPIC/Enrichment/")
 TopResD2 <- merge(TopResD2,AnnotD2[,c("Name","chr","pos","strand","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
 FDR_D2<-merge(FDR_D2,AnnotD2[,c("Name","chr","pos","strand","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
+names(TopResD2)[names(TopResD2)=="probeID"] <- "CpGs"
+TopResD2$rs_numberer<-TopResD2$BETA
 #Suggestive CpGs, FDR CpGs, Suggestive genes, FDR genes
 dim(TopResD2)
 dim(FDR_D2)
@@ -2065,13 +2077,6 @@ png(paste0("Venndiagram_CpGs_EPIC_",colnames(VDdata),".png", collapse = "_"))
 vennDiagram(vennCounts(VDdata),circle.col=c("red","green","blue","yellow"))
 dev.off()  
 
-
-################################################################################
-# Comparison of significant results with other papers significant results
-#################################################################################
-
-matchingdata<-identical(SigResA4&probeID, other_data)
-SigResA4[matchingdata,]
 
 #################################################################################
 # Functional enrichment analisys of placenta
