@@ -1596,51 +1596,40 @@ write.table(data.frame(Model = c("A1","B1","C1","D1","A2","B2","C2","D2","A3","B
 # step 8: Correlation between models with different variables
 #################################################################################
 
-## CHECK CPG ORDER! (merge )
-check<-c(all.resultsB1, all.resultsB2, all.resultsB3, all.resultsB4, all.resultsC1, all.resultsC2, all.resultsD1, all.resultsD2)
-Bmod<-c(all.resultsB1, all.resultsB2, all.resultsB3, all.resultsB4,all.resultsB1, all.resultsB2,all.resultsB1, all.resultsB2)
-namesmods<-c("1AB","2AB","3AB","4AB","1AC","2AC","1AD","2AD")
-CorrelationCPG_pval<-NULL
-CorrelationCPG_betas<-NULL
-CorrelationCPG_betas<-rownames(namesmods)
-CorrelationCPG_pval<-rownames(namesmods)
+### CHECK CPG ORDER! (merge )
+check<-list(all.resultsA1, all.resultsB1, all.resultsC1, all.resultsD1, all.resultsA3, all.resultsB3, all.resultsA4, all.resultsB4, all.resultsA2, all.resultsA2, all.resultsA2, all.resultsB2, all.resultsB2, all.resultsC2)
+Bmod<-list(all.resultsA2, all.resultsB2, all.resultsC2, all.resultsD2, all.resultsA2, all.resultsB2, all.resultsA2 , all.resultsB2, all.resultsB2, all.resultsC2, all.resultsD2, all.resultsC2, all.resultsD2, all.resultsD2)
+namesmods<-c("A1_A2","B1_B2","C1_C2","D1_D2","A3_A2","B3_B2","A4_A2","B4_B2","A2_B2","A2_C2","A2_D2","B2_C2","B2_D2","C2_D2")
+CorrelationCPG_pval<-data.frame(matrix(NA, nrow = length(namesmods), ncol = 2))
+CorrelationCPG_betas<-data.frame(matrix(NA, nrow = length(namesmods), ncol = 2))
 
-for (i in 1:8) {
+
+for (i in 1:length(namesmods)) {
+  
   #Model B Normality
-  B<-Bmod[i]
-  norB<-shapiro.test(B$betas)
-  FDR<-p.adjust(B$pval, method = "bonferroni")
+  B<-as.data.frame(Bmod[i])
+  norB<-ad.test(B[,2])$p.value 
   # Model to compare normality
-  C<-chech[i]
-  norC<-shapiro.test(correlationdata$A)
+  C<-as.data.frame(check[i])
+  norC<-ad.test(C[,2])$p.value
   # data pairing (check order)
-  identical(B$probeID,C$probeID)
-  correlationdata<-merge(B,C, by.x=B$probeID, by.y=C$probeID)
-  if (norB== x & norC==x ){
+  if (identical(B[,1],C[,1])==FALSE){
+	C<-C[C[,1]==B[,1],]
+  }
+  if (norB>0.05 & norC>0.05 ){
     #Normal Pearson betas, pvalues
-    cor.res<-cor.test(X,Y, method="pearson")
+    cor.res<-cor.test(B[,2],C[,2], method="pearson")$estimate
   }else{
     # nonorm spearman
-    cor.res<-cor.test(X,Y, method="spearman")
+    cor.res<-cor.test(B[,2],C[,2], method="spearman")$estimate
   }
-  CorrelationCPG_pval[i,1]<-cor.res
-  CorrelationCPG_pval[i,2]<-FDR
-  CorrelationCPG_betas[i,1]<-cor.res
-  CorrelationCPG_betas[i,2]<-FDR
-}
-
-for(i in c(check, Bmod[1:4])){
-  Vpdata<-NULL
-  Vpdata$log10pval<- -log(i$pval)
-  Vpdata$FC<-log2()
-  png(paste("Volcano_",str(namemods),".txt"))
-  plotVolcano(i[,c(1,2)], test = "G", pAdj = "BH", sigThresh = 0.05, main= paste("volcanoplot of model", namesmods))
+  CorrelationCPG_betas[i]<-cor.res
+  #scatterplot
+  png(paste0("scatterplot",namesmods[i],".png"))
+  plot(B$BETA, C$BETA, pch = 19, col = "black", main = namesmods[i])
   dev.off()
-} 
-
-
-## QC table check new methilation relation omegas sex..
-
+}
+CorrelationCPG_betas<-data.frame(sapply(list(CorrelationCPG_betas,namesmods),c))
 
 ################################################################################
 ### Summarize probes
