@@ -31,7 +31,7 @@ library(R.utils) # To zip files
 library(limma) #venn diagrams
 library(table1) #Descriptive statistics
 library(htmltools) #save html
-library(EASIER) # annotation and functional enrichment of the placenta
+library(EASIER) # annotation, functional enrichment of the placenta, Volcano plot
 
 #################################################################################
 # load air polution data  and pd (methilation) data
@@ -1935,19 +1935,55 @@ write.table(TopResB4, "PACE_EPIC_ModelB4_15-08_TopResults.txt",na="NA")
 
 ################################################################################
 
-# remove na !!
-Topresults <- Reduce(function(...) merge(..., all=T), list(TopResB1,TopResB2,TopResB3, TopResB4))
+# Volcano plots
 
-Topresults_list<-unique(Topresults$probeID)
+png("VolcanoA1")
+plot_volcano(TopResA1, "BETA", "P_VAL", nCpGs, main = "MODEL A1 : NO2")
+dev.off()
 
-write.table(paste(unlist(Topresults_list), collapse="\n"), "PACE_EPIC_Significative_Results_31-08.txt",na="NA")
+png("VolcanoB1")
+plot_volcano(TopResB1, "BETA", "P_VAL", nCpGs, main = "MODEL B1 : PM2.5")
+dev.off()
 
+png("VolcanoC1")
+plot_volcano(TopResC1, "BETA", "P_VAL", nCpGs, main = "MODEL C1 : PM2.5 Abs.")
+dev.off()
 
-Topresults_list_UCSC<-unique(Topresults$UCSC_RefGene_Name)
+png("VolcanoD1")
+plot_volcano(TopResD1, "BETA", "P_VAL", nCpGs, main = "MODEL D1 : PM10")
+dev.off()
 
-Topresults_list_UCSC<-unique(sapply(Topresults_list_UCSC, function(x) x[1]))
+png("VolcanoA2")
+plot_volcano(TopResA2, "BETA", "P_VAL", nCpGs, main = "MODEL A2 : NO2 + cell")
+dev.off()
 
-write.table(paste(unlist(Topresults_list_UCSC), collapse="\n"), "PACE_EPIC_Top_Results_19-05_UCSC.txt",na="NA")
+png("VolcanoB2")
+plot_volcano(TopResB2, "BETA", "P_VAL", nCpGs, main = "MODEL B2 : PM2.5 + cell")
+dev.off()
+
+png("VolcanoC2")
+plot_volcano(TopResC2, "BETA", "P_VAL", nCpGs, main = "MODEL C2 : PM2.5 Abs. + cell")
+dev.off()
+
+png("VolcanoD2")
+plot_volcano(TopResD2, "BETA", "P_VAL", nCpGs, main = "MODEL D2 : PM10 + cell")
+dev.off()
+
+png("VolcanoA3")
+plot_volcano(TopResA3, "BETA", "P_VAL", nCpGs, main = "MODEL A3 : NO2 + Non smoking + cell")
+dev.off()
+
+png("VolcanoB3")
+plot_volcano(TopResB3, "BETA", "P_VAL", nCpGs, main = "MODEL B3 : PM2.5 + Non smoking + cell")
+dev.off()
+
+png("VolcanoA4")
+plot_volcano(TopResA4, "BETA", "P_VAL", nCpGs, main = "MODEL A4 : NO2+ European + cell")
+dev.off()
+
+png("VolcanoB4")
+plot_volcano(TopResB4, "BETA", "P_VAL", nCpGs, main = "MODEL B4 : PM2.5 + European + cell")
+dev.off()
 ################################################################################
 # Comparison of significant results with other papers significant results
 #################################################################################
