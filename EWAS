@@ -1984,6 +1984,99 @@ dev.off()
 png("VolcanoB4")
 plot_volcano(TopResB4, "BETA", "P_VAL", nCpGs, main = "MODEL B4 : PM2.5 + European + cell")
 dev.off()
+
+################################################################################
+# Venn Diagram per Pollutant and between X2 models. 
+################################################################################
+
+# A1 vs. A2
+VDdata<-NULL
+
+VDdata$CpGs<-unique(c(TopResA1$probeID,TopResA2$probeID))
+
+VDdata$A1<- VDdata$CpGs %in% TopResA1$probeID
+
+VDdata$A2<- VDdata$CpGs %in% TopResA2$probeID
+
+VDdata$CpGs<-NULL
+
+VDdata<-as.data.frame(VDdata)
+
+png(paste0("Venndiagram_CpGs_EPIC_",colnames(VDdata),".png"))
+vennDiagram(vennCounts(VDdata),circle.col=c("red","green"))
+dev.off()  
+
+
+# B1 vs B2
+VDdata<-NULL
+
+VDdata$CpGs<-unique(c(TopResB1$probeID,TopResB2$probeID))
+
+VDdata$B1<- VDdata$CpGs %in% TopResB1$probeID
+
+VDdata$B2<- VDdata$CpGs %in% TopResB2$probeID
+
+VDdata$CpGs<-NULL
+
+VDdata<-as.data.frame(VDdata)
+
+png(paste0("Venndiagram_CpGs_EPIC_",colnames(VDdata),".png"))
+vennDiagram(vennCounts(VDdata),circle.col=c("red","green"))
+dev.off()  
+
+# C1 vs C2
+VDdata<-NULL
+
+VDdata$CpGs<-unique(c(TopResC1$probeID,TopResC2$probeID))
+
+VDdata$C1<- VDdata$CpGs %in% TopResC1$probeID
+
+VDdata$C2<- VDdata$CpGs %in% TopResC2$probeID
+
+VDdata$CpGs<-NULL
+
+VDdata<-as.data.frame(VDdata)
+
+png(paste0("Venndiagram_CpGs_EPIC_",colnames(VDdata),".png"))
+vennDiagram(vennCounts(VDdata),circle.col=c("red","green"))
+dev.off()  
+
+#D1 vs D2
+VDdata<-NULL
+
+VDdata$CpGs<-unique(c(TopResC1$probeID,TopResC2$probeID))
+
+VDdata$D1<- VDdata$CpGs %in% TopResD1$probeID
+
+VDdata$D2<- VDdata$CpGs %in% TopResD2$probeID
+
+VDdata$CpGs<-NULL
+
+VDdata<-as.data.frame(VDdata)
+
+png(paste0("Venndiagram_CpGs_EPIC_",colnames(VDdata),".png"))
+vennDiagram(vennCounts(VDdata),circle.col=c("red","green"))
+dev.off()  
+
+# X2
+VDdata<-NULL
+
+VDdata$CpGs<-unique(c(TopResA2$probeID,TopResB2$probeID, TopResC2$probeID,TopResD2$probeID))
+
+VDdata$A2<- VDdata$CpGs %in% TopResA2$probeID
+VDdata$B2<- VDdata$CpGs %in% TopResB2$probeID
+VDdata$C2<- VDdata$CpGs %in% TopResC2$probeID
+VDdata$D2<- VDdata$CpGs %in% TopResD2$probeID
+
+VDdata$CpGs<-NULL
+
+VDdata<-as.data.frame(VDdata)
+
+png(paste0("Venndiagram_CpGs_EPIC_",colnames(VDdata),".png", collapse = "_"))
+vennDiagram(vennCounts(VDdata),circle.col=c("red","green","blue","yellow"))
+dev.off()  
+
+
 ################################################################################
 # Comparison of significant results with other papers significant results
 #################################################################################
