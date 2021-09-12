@@ -1689,247 +1689,293 @@ dev.off()
 pvthresh<- 1e-5
 
 # FDR 
-all.resultsA1$Q_VAL<-p.adjust(all.resultsA1$P_VAL, method = "fdr")
+all.resultsA1$FDR<-p.adjust(all.resultsA1$P_VAL, method = "fdr")
+all.resultsA1$Bonferroni<-p.adjust(all.resultsA1$P_VAL, method = "bonferroni")
 # Selection by threshold
 SigResA1<-all.resultsA1[all.resultsA1$P_VAL<pvthresh,]
-FDR_A1<-all.resultsA1[all.resultsA1$Q_VAL<0.05,]
 TopResA1<-SigResA1[order(SigResA1$P_VAL), ]
-FDR_A1<-TopResA1[order(FDR_A1$Q_VAL),]
 #Get annotation 
 AnnotA1<-EASIER::get_annotattions(all.resultsA1$probeID,"EPIC","AnotatedA1.txt","/home/isglobal.lan/jaumatell/data/WS_INMA/Methylation_INMA/PACE/airpollution_placenta/results/INMA/EPIC/Enrichment/")
 TopResA1 <- merge(TopResA1,AnnotA1[,c("Name","chr","pos","strand","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
-FDR_A1<-merge(FDR_A1,AnnotA1[,c("Name","chr","pos","strand","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
 names(TopResA1)[names(TopResA1)=="probeID"] <- "CpGs"
+names(TopResA1)[names(TopResA1)=="P_VAL"] <- "p.value"
 TopResA1$rs_numberer<-TopResA1$BETA
 #Suggestive CpGs, FDR CpGs, Suggestive genes, FDR genes
 dim(TopResA1)
-dim(FDR_A1)
+BFSig<-TopResA1[TopResA1$Bonferroni<pvthresh,]
+dim(BFSig)
+FDRSig<-TopResA1[TopResA1$FDR<pvthresh,]
+dim(FDRSig)
 length(unique(do.call(c,strsplit(gsub(";","\n",TopResA1$UCSC_RefGene_Name),"\n"))))
-length(unique(do.call(c,strsplit(gsub(";","\n",FDR_A1$UCSC_RefGene_Name),"\n"))))
+length(unique(do.call(c,strsplit(gsub(";","\n",BFSig$UCSC_RefGene_Name),"\n"))))
+length(unique(do.call(c,strsplit(gsub(";","\n",FDRSig$UCSC_RefGene_Name),"\n"))))
 # save suggestive results
 write.table(TopResA1, "PACE_EPIC_ModelA1_15-08_TopResults.txt",na="NA")
 
 
 # FDR 
-all.resultsB1$Q_VAL<-p.adjust(all.resultsB1$P_VAL, method = "fdr")
+all.resultsB1$FDR<-p.adjust(all.resultsB1$P_VAL, method = "fdr")
+all.resultsB1$Bonferroni<-p.adjust(all.resultsB1$P_VAL, method = "bonferroni")
 # Selection by threshold
 SigResB1<-all.resultsB1[all.resultsB1$P_VAL<pvthresh,]
-FDR_B1<-all.resultsB1[all.resultsB1$Q_VAL<0.05,]
 TopResB1<-SigResB1[order(SigResB1$P_VAL), ]
-FDR_B1<-TopResB1[order(FDR_B1$Q_VAL),]
 #Get annotation 
 AnnotB1<-EASIER::get_annotattions(all.resultsB1$probeID,"EPIC","AnotatedB1.txt","/home/isglobal.lan/jaumatell/data/WS_INMA/Methylation_INMA/PACE/airpollution_placenta/results/INMA/EPIC/Enrichment/")
 TopResB1 <- merge(TopResB1,AnnotB1[,c("Name","chr","pos","strand","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
-FDR_B1<-merge(FDR_B1,AnnotB1[,c("Name","chr","pos","strand","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
 names(TopResB1)[names(TopResB1)=="probeID"] <- "CpGs"
+names(TopResB1)[names(TopResB1)=="P_VAL"] <- "p.value"
 TopResB1$rs_numberer<-TopResB1$BETA
 #Suggestive CpGs, FDR CpGs, Suggestive genes, FDR genes
 dim(TopResB1)
-dim(FDR_B1)
+BFSig<-TopResB1[TopResB1$Bonferroni<pvthresh,]
+dim(BFSig)
+FDRSig<-TopResB1[TopResB1$FDR<pvthresh,]
+dim(FDRSig)
 length(unique(do.call(c,strsplit(gsub(";","\n",TopResB1$UCSC_RefGene_Name),"\n"))))
-length(unique(do.call(c,strsplit(gsub(";","\n",FDR_B1$UCSC_RefGene_Name),"\n"))))
+length(unique(do.call(c,strsplit(gsub(";","\n",BFSig$UCSC_RefGene_Name),"\n"))))
+length(unique(do.call(c,strsplit(gsub(";","\n",FDRSig$UCSC_RefGene_Name),"\n"))))
 # save suggestive results
 write.table(TopResB1, "PACE_EPIC_ModelB1_15-08_TopResults.txt",na="NA")
 
-
 # FDR 
-all.resultsC1$Q_VAL<-p.adjust(all.resultsC1$P_VAL, method = "fdr")
+all.resultsC1$FDR<-p.adjust(all.resultsC1$P_VAL, method = "fdr")
+all.resultsC1$Bonferroni<-p.adjust(all.resultsC1$P_VAL, method = "bonferroni")
 # Selection by threshold
 SigResC1<-all.resultsC1[all.resultsC1$P_VAL<pvthresh,]
-FDR_C1<-all.resultsC1[all.resultsC1$Q_VAL<0.05,]
 TopResC1<-SigResC1[order(SigResC1$P_VAL), ]
-FDR_C1<-TopResC1[order(FDR_C1$Q_VAL),]
 #Get annotation 
 AnnotC1<-EASIER::get_annotattions(all.resultsC1$probeID,"EPIC","AnotatedC1.txt","/home/isglobal.lan/jaumatell/data/WS_INMA/Methylation_INMA/PACE/airpollution_placenta/results/INMA/EPIC/Enrichment/")
 TopResC1 <- merge(TopResC1,AnnotC1[,c("Name","chr","pos","strand","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
-FDR_C1<-merge(FDR_C1,AnnotC1[,c("Name","chr","pos","strand","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
+names(TopResC1)[names(TopResC1)=="probeID"] <- "CpGs"
+names(TopResC1)[names(TopResC1)=="P_VAL"] <- "p.value"
+TopResC1$rs_numberer<-TopResC1$BETA
 #Suggestive CpGs, FDR CpGs, Suggestive genes, FDR genes
 dim(TopResC1)
-dim(FDR_C1)
+BFSig<-TopResC1[TopResC1$Bonferroni<pvthresh,]
+dim(BFSig)
+FDRSig<-TopResC1[TopResC1$FDR<pvthresh,]
+dim(FDRSig)
 length(unique(do.call(c,strsplit(gsub(";","\n",TopResC1$UCSC_RefGene_Name),"\n"))))
-length(unique(do.call(c,strsplit(gsub(";","\n",FDR_C1$UCSC_RefGene_Name),"\n"))))
+length(unique(do.call(c,strsplit(gsub(";","\n",BFSig$UCSC_RefGene_Name),"\n"))))
+length(unique(do.call(c,strsplit(gsub(";","\n",FDRSig$UCSC_RefGene_Name),"\n"))))
 # save suggestive results
 write.table(TopResC1, "PACE_EPIC_ModelC1_15-08_TopResults.txt",na="NA")
 
 # FDR 
-all.resultsD1$Q_VAL<-p.adjust(all.resultsD1$P_VAL, method = "fdr")
+all.resultsD1$FDR<-p.adjust(all.resultsD1$P_VAL, method = "fdr")
+all.resultsD1$Bonferroni<-p.adjust(all.resultsD1$P_VAL, method = "bonferroni")
 # Selection by threshold
 SigResD1<-all.resultsD1[all.resultsD1$P_VAL<pvthresh,]
-FDR_D1<-all.resultsD1[all.resultsD1$Q_VAL<0.05,]
 TopResD1<-SigResD1[order(SigResD1$P_VAL), ]
-FDR_D1<-TopResD1[order(FDR_D1$Q_VAL),]
 #Get annotation 
 AnnotD1<-EASIER::get_annotattions(all.resultsD1$probeID,"EPIC","AnotatedD1.txt","/home/isglobal.lan/jaumatell/data/WS_INMA/Methylation_INMA/PACE/airpollution_placenta/results/INMA/EPIC/Enrichment/")
 TopResD1 <- merge(TopResD1,AnnotD1[,c("Name","chr","pos","strand","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
-FDR_D1<-merge(FDR_D1,AnnotD1[,c("Name","chr","pos","strand","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
+names(TopResD1)[names(TopResD1)=="probeID"] <- "CpGs"
+names(TopResD1)[names(TopResD1)=="P_VAL"] <- "p.value"
+TopResD1$rs_numberer<-TopResD1$BETA
 #Suggestive CpGs, FDR CpGs, Suggestive genes, FDR genes
 dim(TopResD1)
-dim(FDR_D1)
+BFSig<-TopResD1[TopResD1$Bonferroni<pvthresh,]
+dim(BFSig)
+FDRSig<-TopResD1[TopResD1$FDR<pvthresh,]
+dim(FDRSig)
 length(unique(do.call(c,strsplit(gsub(";","\n",TopResD1$UCSC_RefGene_Name),"\n"))))
-length(unique(do.call(c,strsplit(gsub(";","\n",FDR_D1$UCSC_RefGene_Name),"\n"))))
+length(unique(do.call(c,strsplit(gsub(";","\n",BFSig$UCSC_RefGene_Name),"\n"))))
+length(unique(do.call(c,strsplit(gsub(";","\n",FDRSig$UCSC_RefGene_Name),"\n"))))
 # save suggestive results
 write.table(TopResD1, "PACE_EPIC_ModelD1_15-08_TopResults.txt",na="NA")
 
 # FDR 
-all.resultsA2$Q_VAL<-p.adjust(all.resultsA2$P_VAL, method = "fdr")
+all.resultsA2$FDR<-p.adjust(all.resultsA2$P_VAL, method = "fdr")
+all.resultsA2$Bonferroni<-p.adjust(all.resultsA2$P_VAL, method = "bonferroni")
 # Selection by threshold
 SigResA2<-all.resultsA2[all.resultsA2$P_VAL<pvthresh,]
-FDR_A2<-all.resultsA2[all.resultsA2$Q_VAL<0.05,]
 TopResA2<-SigResA2[order(SigResA2$P_VAL), ]
-FDR_A2<-TopResA2[order(FDR_A2$Q_VAL),]
 #Get annotation 
 AnnotA2<-EASIER::get_annotattions(all.resultsA2$probeID,"EPIC","AnotatedA2.txt","/home/isglobal.lan/jaumatell/data/WS_INMA/Methylation_INMA/PACE/airpollution_placenta/results/INMA/EPIC/Enrichment/")
 TopResA2 <- merge(TopResA2,AnnotA2[,c("Name","chr","pos","strand","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
-FDR_A2<-merge(FDR_A2,AnnotA2[,c("Name","chr","pos","strand","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
 names(TopResA2)[names(TopResA2)=="probeID"] <- "CpGs"
+names(TopResA2)[names(TopResA2)=="P_VAL"] <- "p.value"
 TopResA2$rs_numberer<-TopResA2$BETA
 #Suggestive CpGs, FDR CpGs, Suggestive genes, FDR genes
 dim(TopResA2)
-dim(FDR_A2)
+BFSig<-TopResA2[TopResA2$Bonferroni<pvthresh,]
+dim(BFSig)
+FDRSig<-TopResA2[TopResA2$FDR<pvthresh,]
+dim(FDRSig)
 length(unique(do.call(c,strsplit(gsub(";","\n",TopResA2$UCSC_RefGene_Name),"\n"))))
-length(unique(do.call(c,strsplit(gsub(";","\n",FDR_A2$UCSC_RefGene_Name),"\n"))))
+length(unique(do.call(c,strsplit(gsub(";","\n",BFSig$UCSC_RefGene_Name),"\n"))))
+length(unique(do.call(c,strsplit(gsub(";","\n",FDRSig$UCSC_RefGene_Name),"\n"))))
 # save suggestive results
 write.table(TopResA2, "PACE_EPIC_ModelA2_15-08_TopResults.txt",na="NA")
 
 
 # FDR 
-all.resultsB2$Q_VAL<-p.adjust(all.resultsB2$P_VAL, method = "fdr")
+all.resultsB2$FDR<-p.adjust(all.resultsB2$P_VAL, method = "fdr")
+all.resultsB2$Bonferroni<-p.adjust(all.resultsB2$P_VAL, method = "bonferroni")
 # Selection by threshold
 SigResB2<-all.resultsB2[all.resultsB2$P_VAL<pvthresh,]
-FDR_B2<-all.resultsB2[all.resultsB2$Q_VAL<0.05,]
 TopResB2<-SigResB2[order(SigResB2$P_VAL), ]
-FDR_B2<-TopResB2[order(FDR_B2$Q_VAL),]
 #Get annotation 
 AnnotB2<-EASIER::get_annotattions(all.resultsB2$probeID,"EPIC","AnotatedB2.txt","/home/isglobal.lan/jaumatell/data/WS_INMA/Methylation_INMA/PACE/airpollution_placenta/results/INMA/EPIC/Enrichment/")
 TopResB2 <- merge(TopResB2,AnnotB2[,c("Name","chr","pos","strand","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
-FDR_B2<-merge(FDR_B2,AnnotB2[,c("Name","chr","pos","strand","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
 names(TopResB2)[names(TopResB2)=="probeID"] <- "CpGs"
+names(TopResB2)[names(TopResB2)=="P_VAL"] <- "p.value"
 TopResB2$rs_numberer<-TopResB2$BETA
 #Suggestive CpGs, FDR CpGs, Suggestive genes, FDR genes
 dim(TopResB2)
-dim(FDR_B2)
+BFSig<-TopResB2[TopResB2$Bonferroni<pvthresh,]
+dim(BFSig)
+FDRSig<-TopResB2[TopResB2$FDR<pvthresh,]
+dim(FDRSig)
 length(unique(do.call(c,strsplit(gsub(";","\n",TopResB2$UCSC_RefGene_Name),"\n"))))
-length(unique(do.call(c,strsplit(gsub(";","\n",FDR_B2$UCSC_RefGene_Name),"\n"))))
+length(unique(do.call(c,strsplit(gsub(";","\n",BFSig$UCSC_RefGene_Name),"\n"))))
+length(unique(do.call(c,strsplit(gsub(";","\n",FDRSig$UCSC_RefGene_Name),"\n"))))
 # save suggestive results
 write.table(TopResB2, "PACE_EPIC_ModelB2_15-08_TopResults.txt",na="NA")
 
 # FDR 
-all.resultsC2$Q_VAL<-p.adjust(all.resultsC2$P_VAL, method = "fdr")
+all.resultsC2$FDR<-p.adjust(all.resultsC2$P_VAL, method = "fdr")
+all.resultsC2$Bonferroni<-p.adjust(all.resultsC2$P_VAL, method = "bonferroni")
 # Selection by threshold
 SigResC2<-all.resultsC2[all.resultsC2$P_VAL<pvthresh,]
-FDR_C2<-all.resultsC2[all.resultsC2$Q_VAL<0.05,]
 TopResC2<-SigResC2[order(SigResC2$P_VAL), ]
-FDR_C2<-TopResC2[order(FDR_C2$Q_VAL),]
 #Get annotation 
 AnnotC2<-EASIER::get_annotattions(all.resultsC2$probeID,"EPIC","AnotatedC2.txt","/home/isglobal.lan/jaumatell/data/WS_INMA/Methylation_INMA/PACE/airpollution_placenta/results/INMA/EPIC/Enrichment/")
 TopResC2 <- merge(TopResC2,AnnotC2[,c("Name","chr","pos","strand","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
-FDR_C2<-merge(FDR_C2,AnnotC2[,c("Name","chr","pos","strand","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
 names(TopResC2)[names(TopResC2)=="probeID"] <- "CpGs"
+names(TopResC2)[names(TopResC2)=="P_VAL"] <- "p.value"
 TopResC2$rs_numberer<-TopResC2$BETA
 #Suggestive CpGs, FDR CpGs, Suggestive genes, FDR genes
 dim(TopResC2)
-dim(FDR_C2)
+BFSig<-TopResC2[TopResC2$Bonferroni<pvthresh,]
+dim(BFSig)
+FDRSig<-TopResC2[TopResC2$FDR<pvthresh,]
+dim(FDRSig)
 length(unique(do.call(c,strsplit(gsub(";","\n",TopResC2$UCSC_RefGene_Name),"\n"))))
-length(unique(do.call(c,strsplit(gsub(";","\n",FDR_C2$UCSC_RefGene_Name),"\n"))))
+length(unique(do.call(c,strsplit(gsub(";","\n",BFSig$UCSC_RefGene_Name),"\n"))))
+length(unique(do.call(c,strsplit(gsub(";","\n",FDRSig$UCSC_RefGene_Name),"\n"))))
 # save suggestive results
 write.table(TopResC2, "PACE_EPIC_ModelC2_15-08_TopResults.txt",na="NA")
 
-
 # FDR 
-all.resultsD2$Q_VAL<-p.adjust(all.resultsD2$P_VAL, method = "fdr")
+all.resultsD2$FDR<-p.adjust(all.resultsD2$P_VAL, method = "fdr")
+all.resultsD2$Bonferroni<-p.adjust(all.resultsD2$P_VAL, method = "bonferroni")
 # Selection by threshold
 SigResD2<-all.resultsD2[all.resultsD2$P_VAL<pvthresh,]
-FDR_D2<-all.resultsD2[all.resultsD2$Q_VAL<0.05,]
 TopResD2<-SigResD2[order(SigResD2$P_VAL), ]
-FDR_D2<-TopResD2[order(FDR_D2$Q_VAL),]
 #Get annotation 
 AnnotD2<-EASIER::get_annotattions(all.resultsD2$probeID,"EPIC","AnotatedD2.txt","/home/isglobal.lan/jaumatell/data/WS_INMA/Methylation_INMA/PACE/airpollution_placenta/results/INMA/EPIC/Enrichment/")
 TopResD2 <- merge(TopResD2,AnnotD2[,c("Name","chr","pos","strand","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
-FDR_D2<-merge(FDR_D2,AnnotD2[,c("Name","chr","pos","strand","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
 names(TopResD2)[names(TopResD2)=="probeID"] <- "CpGs"
+names(TopResD2)[names(TopResD2)=="P_VAL"] <- "p.value"
 TopResD2$rs_numberer<-TopResD2$BETA
 #Suggestive CpGs, FDR CpGs, Suggestive genes, FDR genes
 dim(TopResD2)
-dim(FDR_D2)
+BFSig<-TopResD2[TopResD2$Bonferroni<pvthresh,]
+dim(BFSig)
+FDRSig<-TopResD2[TopResD2$FDR<pvthresh,]
+dim(FDRSig)
 length(unique(do.call(c,strsplit(gsub(";","\n",TopResD2$UCSC_RefGene_Name),"\n"))))
-length(unique(do.call(c,strsplit(gsub(";","\n",FDR_D2$UCSC_RefGene_Name),"\n"))))
+length(unique(do.call(c,strsplit(gsub(";","\n",BFSig$UCSC_RefGene_Name),"\n"))))
+length(unique(do.call(c,strsplit(gsub(";","\n",FDRSig$UCSC_RefGene_Name),"\n"))))
 # save suggestive results
 write.table(TopResD2, "PACE_EPIC_ModelD2_15-08_TopResults.txt",na="NA")
 
-
 # FDR 
-all.resultsA3$Q_VAL<-p.adjust(all.resultsA3$P_VAL, method = "fdr")
+all.resultsA3$FDR<-p.adjust(all.resultsA3$P_VAL, method = "fdr")
+all.resultsA3$Bonferroni<-p.adjust(all.resultsA3$P_VAL, method = "bonferroni")
 # Selection by threshold
 SigResA3<-all.resultsA3[all.resultsA3$P_VAL<pvthresh,]
-FDR_A3<-all.resultsA3[all.resultsA3$Q_VAL<0.05,]
 TopResA3<-SigResA3[order(SigResA3$P_VAL), ]
-FDR_A3<-TopResA3[order(FDR_A3$Q_VAL),]
 #Get annotation 
 AnnotA3<-EASIER::get_annotattions(all.resultsA3$probeID,"EPIC","AnotatedA3.txt","/home/isglobal.lan/jaumatell/data/WS_INMA/Methylation_INMA/PACE/airpollution_placenta/results/INMA/EPIC/Enrichment/")
 TopResA3 <- merge(TopResA3,AnnotA3[,c("Name","chr","pos","strand","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
-FDR_A3<-merge(FDR_A3,AnnotA3[,c("Name","chr","pos","strand","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
+names(TopResA3)[names(TopResA3)=="probeID"] <- "CpGs"
+names(TopResA3)[names(TopResA3)=="P_VAL"] <- "p.value"
+TopResA3$rs_numberer<-TopResA3$BETA
 #Suggestive CpGs, FDR CpGs, Suggestive genes, FDR genes
 dim(TopResA3)
-dim(FDR_A3)
+BFSig<-TopResA3[TopResA3$Bonferroni<pvthresh,]
+dim(BFSig)
+FDRSig<-TopResA3[TopResA3$FDR<pvthresh,]
+dim(FDRSig)
 length(unique(do.call(c,strsplit(gsub(";","\n",TopResA3$UCSC_RefGene_Name),"\n"))))
-length(unique(do.call(c,strsplit(gsub(";","\n",FDR_A3$UCSC_RefGene_Name),"\n"))))
+length(unique(do.call(c,strsplit(gsub(";","\n",BFSig$UCSC_RefGene_Name),"\n"))))
+length(unique(do.call(c,strsplit(gsub(";","\n",FDRSig$UCSC_RefGene_Name),"\n"))))
 # save suggestive results
 write.table(TopResA3, "PACE_EPIC_ModelA3_15-08_TopResults.txt",na="NA")
 
 # FDR 
-all.resultsB3$Q_VAL<-p.adjust(all.resultsB3$P_VAL, method = "fdr")
+all.resultsB3$FDR<-p.adjust(all.resultsB3$P_VAL, method = "fdr")
+all.resultsB3$Bonferroni<-p.adjust(all.resultsB3$P_VAL, method = "bonferroni")
 # Selection by threshold
 SigResB3<-all.resultsB3[all.resultsB3$P_VAL<pvthresh,]
-FDR_B3<-all.resultsB3[all.resultsB3$Q_VAL<0.05,]
 TopResB3<-SigResB3[order(SigResB3$P_VAL), ]
-FDR_B3<-TopResB3[order(FDR_B3$Q_VAL),]
 #Get annotation 
 AnnotB3<-EASIER::get_annotattions(all.resultsB3$probeID,"EPIC","AnotatedB3.txt","/home/isglobal.lan/jaumatell/data/WS_INMA/Methylation_INMA/PACE/airpollution_placenta/results/INMA/EPIC/Enrichment/")
 TopResB3 <- merge(TopResB3,AnnotB3[,c("Name","chr","pos","strand","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
-FDR_B3<-merge(FDR_B3,AnnotB3[,c("Name","chr","pos","strand","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
+names(TopResB3)[names(TopResB3)=="probeID"] <- "CpGs"
+names(TopResB3)[names(TopResB3)=="P_VAL"] <- "p.value"
+TopResB3$rs_numberer<-TopResB3$BETA
 #Suggestive CpGs, FDR CpGs, Suggestive genes, FDR genes
 dim(TopResB3)
-dim(FDR_B3)
+BFSig<-TopResB3[TopResB3$Bonferroni<pvthresh,]
+dim(BFSig)
+FDRSig<-TopResB3[TopResB3$FDR<pvthresh,]
+dim(FDRSig)
 length(unique(do.call(c,strsplit(gsub(";","\n",TopResB3$UCSC_RefGene_Name),"\n"))))
-length(unique(do.call(c,strsplit(gsub(";","\n",FDR_B3$UCSC_RefGene_Name),"\n"))))
+length(unique(do.call(c,strsplit(gsub(";","\n",BFSig$UCSC_RefGene_Name),"\n"))))
+length(unique(do.call(c,strsplit(gsub(";","\n",FDRSig$UCSC_RefGene_Name),"\n"))))
 # save suggestive results
 write.table(TopResB3, "PACE_EPIC_ModelB3_15-08_TopResults.txt",na="NA")
 
+
 # FDR 
-all.resultsA4$Q_VAL<-p.adjust(all.resultsA4$P_VAL, method = "fdr")
+all.resultsA4$FDR<-p.adjust(all.resultsA4$P_VAL, method = "fdr")
+all.resultsA4$Bonferroni<-p.adjust(all.resultsA4$P_VAL, method = "bonferroni")
 # Selection by threshold
 SigResA4<-all.resultsA4[all.resultsA4$P_VAL<pvthresh,]
-FDR_A4<-all.resultsA4[all.resultsA4$Q_VAL<0.05,]
 TopResA4<-SigResA4[order(SigResA4$P_VAL), ]
-FDR_A4<-TopResA4[order(FDR_A4$Q_VAL),]
 #Get annotation 
 AnnotA4<-EASIER::get_annotattions(all.resultsA4$probeID,"EPIC","AnotatedA4.txt","/home/isglobal.lan/jaumatell/data/WS_INMA/Methylation_INMA/PACE/airpollution_placenta/results/INMA/EPIC/Enrichment/")
 TopResA4 <- merge(TopResA4,AnnotA4[,c("Name","chr","pos","strand","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
-FDR_A4<-merge(FDR_A4,AnnotA4[,c("Name","chr","pos","strand","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
+names(TopResA4)[names(TopResA4)=="probeID"] <- "CpGs"
+names(TopResA4)[names(TopResA4)=="P_VAL"] <- "p.value"
+TopResA4$rs_numberer<-TopResA4$BETA
 #Suggestive CpGs, FDR CpGs, Suggestive genes, FDR genes
 dim(TopResA4)
-dim(FDR_A4)
+BFSig<-TopResA4[TopResA4$Bonferroni<pvthresh,]
+dim(BFSig)
+FDRSig<-TopResA4[TopResA4$FDR<pvthresh,]
+dim(FDRSig)
 length(unique(do.call(c,strsplit(gsub(";","\n",TopResA4$UCSC_RefGene_Name),"\n"))))
-length(unique(do.call(c,strsplit(gsub(";","\n",FDR_A4$UCSC_RefGene_Name),"\n"))))
+length(unique(do.call(c,strsplit(gsub(";","\n",BFSig$UCSC_RefGene_Name),"\n"))))
+length(unique(do.call(c,strsplit(gsub(";","\n",FDRSig$UCSC_RefGene_Name),"\n"))))
 # save suggestive results
 write.table(TopResA4, "PACE_EPIC_ModelA4_15-08_TopResults.txt",na="NA")
 
 # FDR 
-all.resultsB4$Q_VAL<-p.adjust(all.resultsB4$P_VAL, method = "fdr")
+all.resultsB4$FDR<-p.adjust(all.resultsB4$P_VAL, method = "fdr")
+all.resultsB4$Bonferroni<-p.adjust(all.resultsB4$P_VAL, method = "bonferroni")
 # Selection by threshold
 SigResB4<-all.resultsB4[all.resultsB4$P_VAL<pvthresh,]
-FDR_B4<-all.resultsB4[all.resultsB4$Q_VAL<0.05,]
 TopResB4<-SigResB4[order(SigResB4$P_VAL), ]
-FDR_B4<-TopResB4[order(FDR_B4$Q_VAL),]
 #Get annotation 
 AnnotB4<-EASIER::get_annotattions(all.resultsB4$probeID,"EPIC","AnotatedB4.txt","/home/isglobal.lan/jaumatell/data/WS_INMA/Methylation_INMA/PACE/airpollution_placenta/results/INMA/EPIC/Enrichment/")
 TopResB4 <- merge(TopResB4,AnnotB4[,c("Name","chr","pos","strand","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
-FDR_B4<-merge(FDR_B4,AnnotB4[,c("Name","chr","pos","strand","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
+names(TopResB4)[names(TopResB4)=="probeID"] <- "CpGs"
+names(TopResB4)[names(TopResB4)=="P_VAL"] <- "p.value"
+TopResB4$rs_numberer<-TopResB4$BETA
 #Suggestive CpGs, FDR CpGs, Suggestive genes, FDR genes
 dim(TopResB4)
-dim(FDR_B4)
+BFSig<-TopResB4[TopResB4$Bonferroni<pvthresh,]
+dim(BFSig)
+FDRSig<-TopResB4[TopResB4$FDR<pvthresh,]
+dim(FDRSig)
 length(unique(do.call(c,strsplit(gsub(";","\n",TopResB4$UCSC_RefGene_Name),"\n"))))
-length(unique(do.call(c,strsplit(gsub(";","\n",FDR_B4$UCSC_RefGene_Name),"\n"))))
+length(unique(do.call(c,strsplit(gsub(";","\n",BFSig$UCSC_RefGene_Name),"\n"))))
+length(unique(do.call(c,strsplit(gsub(";","\n",FDRSig$UCSC_RefGene_Name),"\n"))))
 # save suggestive results
 write.table(TopResB4, "PACE_EPIC_ModelB4_15-08_TopResults.txt",na="NA")
 
