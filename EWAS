@@ -1600,8 +1600,10 @@ write.table(data.frame(Model = c("A1","B1","C1","D1","A2","B2","C2","D2","A3","B
 check<-list(all.resultsA1, all.resultsB1, all.resultsC1, all.resultsD1, all.resultsA3, all.resultsB3, all.resultsA4, all.resultsB4, all.resultsA2, all.resultsA2, all.resultsA2, all.resultsB2, all.resultsB2, all.resultsC2)
 Bmod<-list(all.resultsA2, all.resultsB2, all.resultsC2, all.resultsD2, all.resultsA2, all.resultsB2, all.resultsA2 , all.resultsB2, all.resultsB2, all.resultsC2, all.resultsD2, all.resultsC2, all.resultsD2, all.resultsD2)
 namesmods<-c("A1_A2","B1_B2","C1_C2","D1_D2","A3_A2","B3_B2","A4_A2","B4_B2","A2_B2","A2_C2","A2_D2","B2_C2","B2_D2","C2_D2")
-CorrelationCPG_pval<-data.frame(matrix(NA, nrow = length(namesmods), ncol = 2))
-CorrelationCPG_betas<-data.frame(matrix(NA, nrow = length(namesmods), ncol = 2))
+CorrelationCPG_pval<-NULL
+CorrelationCPG_pval_P<-NULL
+CorrelationCPG_betas<-NULL
+CorrelationCPG_b_P<-NULL
 
 
 for (i in 1:length(namesmods)) {
@@ -1618,18 +1620,23 @@ for (i in 1:length(namesmods)) {
   }
   if (norB>0.05 & norC>0.05 ){
     #Normal Pearson betas, pvalues
-    cor.res<-cor.test(B[,2],C[,2], method="pearson")$estimate
+    cor.res<-cor.test(B[,2],C[,2], method="pearson")
+    cor.res.P<-cor.test(B[,4],C[,4], method="pearson")
   }else{
     # nonorm spearman
-    cor.res<-cor.test(B[,2],C[,2], method="spearman")$estimate
+    cor.res<-cor.test(B[,2],C[,2], method="spearman")
+    cor.res.P<-cor.test(B[,4],C[,4], method="spearman")
   }
-  CorrelationCPG_betas[i]<-cor.res
+  CorrelationCPG_betas[i]<-cor.res$estimate
+  CorrelationCPG_b_P[i]<-cor.res$p.value
+  CorrelationCPG_pval[i]<-cor.res.P$estimate
+  CorrelationCPG_pval_P[i]<-cor.res.P$p.value
   #scatterplot
   png(paste0("scatterplot",namesmods[i],".png"))
   plot(B$BETA, C$BETA, pch = 19, col = "black", main = namesmods[i])
   dev.off()
 }
-CorrelationCPG_betas<-data.frame(sapply(list(CorrelationCPG_betas,namesmods),c))
+CorrelationCPG<-data.frame(sapply(list(namesmods,CorrelationCPG_betas,CorrelationCPG_b_P,CorrelationCPG_pval,CorrelationCPG_pval_P),c))
 
 ################################################################################
 ### Summarize probes
@@ -1810,7 +1817,8 @@ length(unique(do.call(c,strsplit(gsub(";","\n",FDRSig$UCSC_RefGene_Name),"\n")))
 write.table(TopResA2, "PACE_EPIC_ModelA2_15-08_TopResults.txt",na="NA")
 #EASIER data
 cat(paste(unique(unlist(strsplit(gsub(";","\n",TopResA2$CpGs),"\n"))), collapse='\n'), file = "TopA2CpGs.txt")
-
+#File to Enrichr and EASIER
+cat(paste(unique(unlist(strsplit(gsub(";","\n",TopResA2$UCSC_RefGene_Name),"\n"))), collapse='\n'), file = "TopA2genes.txt")
 
 # FDR 
 all.resultsB2$FDR<-p.adjust(all.resultsB2$P_VAL, method = "fdr")
@@ -1837,6 +1845,8 @@ length(unique(do.call(c,strsplit(gsub(";","\n",FDRSig$UCSC_RefGene_Name),"\n")))
 write.table(TopResB2, "PACE_EPIC_ModelB2_15-08_TopResults.txt",na="NA")
 #EASIER data
 cat(paste(unique(unlist(strsplit(gsub(";","\n",TopResB2$CpGs),"\n"))), collapse='\n'), file = "TopB2CpGs.txt")
+#File to Enrichr and EASIER
+cat(paste(unique(unlist(strsplit(gsub(";","\n",TopResB2$UCSC_RefGene_Name),"\n"))), collapse='\n'), file = "TopB2genes.txt")
 
 # FDR 
 all.resultsC2$FDR<-p.adjust(all.resultsC2$P_VAL, method = "fdr")
@@ -1863,6 +1873,8 @@ length(unique(do.call(c,strsplit(gsub(";","\n",FDRSig$UCSC_RefGene_Name),"\n")))
 write.table(TopResC2, "PACE_EPIC_ModelC2_15-08_TopResults.txt",na="NA")
 #EASIER data
 cat(paste(unique(unlist(strsplit(gsub(";","\n",TopResC2$CpGs),"\n"))), collapse='\n'), file = "TopC2CpGs.txt")
+#File to Enrichr and EASIER
+cat(paste(unique(unlist(strsplit(gsub(";","\n",TopResC2$UCSC_RefGene_Name),"\n"))), collapse='\n'), file = "TopC2genes.txt")
 
 # FDR 
 all.resultsD2$FDR<-p.adjust(all.resultsD2$P_VAL, method = "fdr")
@@ -1889,6 +1901,8 @@ length(unique(do.call(c,strsplit(gsub(";","\n",FDRSig$UCSC_RefGene_Name),"\n")))
 write.table(TopResD2, "PACE_EPIC_ModelD2_15-08_TopResults.txt",na="NA")
 #EASIER data
 cat(paste(unique(unlist(strsplit(gsub(";","\n",TopResD2$CpGs),"\n"))), collapse='\n'), file = "TopD2CpGs.txt")
+#File to Enrichr and EASIER
+cat(paste(unique(unlist(strsplit(gsub(";","\n",TopResD2$UCSC_RefGene_Name),"\n"))), collapse='\n'), file = "TopD2genes.txt")
 
 # FDR 
 all.resultsA3$FDR<-p.adjust(all.resultsA3$P_VAL, method = "fdr")
@@ -1992,57 +2006,38 @@ write.table(TopResB4, "PACE_EPIC_ModelB4_15-08_TopResults.txt",na="NA")
 
 # Volcano plots
 
-png("VolcanoA1")
+png("VolcanoX1.png")
+par(mfrow= c(2,2))
+
 plot_volcano(TopResA1, "BETA", "p.value", nCpGs, main = "MODEL A1 : NO2")
-dev.off()
-
-png("VolcanoB1")
 plot_volcano(TopResB1, "BETA", "p.value", nCpGs, main = "MODEL B1 : PM2.5")
-dev.off()
-
-png("VolcanoC1")
 plot_volcano(TopResC1, "BETA", "p.value", nCpGs, main = "MODEL C1 : PM2.5 Abs.")
-dev.off()
-
-png("VolcanoD1")
 plot_volcano(TopResD1, "BETA", "p.value", nCpGs, main = "MODEL D1 : PM10")
 dev.off()
 
-png("VolcanoA2")
+png("VolcanoX2.png")
+par(mfrow= c(2,2))
 plot_volcano(TopResA2, "BETA", "p.value", nCpGs, main = "MODEL A2 : NO2 + cell")
-dev.off()
-
-png("VolcanoB2")
 plot_volcano(TopResB2, "BETA", "p.value", nCpGs, main = "MODEL B2 : PM2.5 + cell")
-dev.off()
-
-png("VolcanoC2")
 plot_volcano(TopResC2, "BETA", "p.value", nCpGs, main = "MODEL C2 : PM2.5 Abs. + cell")
-dev.off()
-
-png("VolcanoD2")
 plot_volcano(TopResD2, "BETA", "p.value", nCpGs, main = "MODEL D2 : PM10 + cell")
 dev.off()
 
-png("VolcanoA3")
+png("VolcanoX3_X4.png")
+par(mfrow= c(2,2))
 plot_volcano(TopResA3, "BETA", "p.value", nCpGs, main = "MODEL A3 : NO2 + Non smoking + cell")
-dev.off()
-
-png("VolcanoB3")
 plot_volcano(TopResB3, "BETA", "p.value", nCpGs, main = "MODEL B3 : PM2.5 + Non smoking + cell")
-dev.off()
-
-png("VolcanoA4")
 plot_volcano(TopResA4, "BETA", "p.value", nCpGs, main = "MODEL A4 : NO2+ European + cell")
-dev.off()
-
-png("VolcanoB4")
 plot_volcano(TopResB4, "BETA", "p.value", nCpGs, main = "MODEL B4 : PM2.5 + European + cell")
 dev.off()
 
 ################################################################################
 # Venn Diagram per Pollutant and between X2 models. 
 ################################################################################
+
+
+png("X1_X2_Vendiagram.png")
+par(mfrow= c(2,2))
 
 # A1 vs. A2
 VDdata<-NULL
@@ -2057,9 +2052,7 @@ VDdata$CpGs<-NULL
 
 VDdata<-as.data.frame(VDdata)
 
-png(paste0("Venndiagram_CpGs_EPIC_",colnames(VDdata),".png"))
 vennDiagram(vennCounts(VDdata),circle.col=c("red","green"))
-dev.off()  
 
 
 # B1 vs B2
@@ -2075,9 +2068,7 @@ VDdata$CpGs<-NULL
 
 VDdata<-as.data.frame(VDdata)
 
-png(paste0("Venndiagram_CpGs_EPIC_",colnames(VDdata),".png"))
 vennDiagram(vennCounts(VDdata),circle.col=c("red","green"))
-dev.off()  
 
 # C1 vs C2
 VDdata<-NULL
@@ -2092,9 +2083,7 @@ VDdata$CpGs<-NULL
 
 VDdata<-as.data.frame(VDdata)
 
-png(paste0("Venndiagram_CpGs_EPIC_",colnames(VDdata),".png"))
 vennDiagram(vennCounts(VDdata),circle.col=c("red","green"))
-dev.off()  
 
 #D1 vs D2
 VDdata<-NULL
@@ -2109,10 +2098,11 @@ VDdata$CpGs<-NULL
 
 VDdata<-as.data.frame(VDdata)
 
-png(paste0("Venndiagram_CpGs_EPIC_",colnames(VDdata),".png"))
 vennDiagram(vennCounts(VDdata),circle.col=c("red","green"))
-dev.off()  
+dev.off() 
 
+png("Sensitivity_Venndiagrams.png")
+par(mfrow= c(2,2))
 # A2 vs. A3
 VDdata<-NULL
 
@@ -2126,10 +2116,7 @@ VDdata$CpGs<-NULL
 
 VDdata<-as.data.frame(VDdata)
 
-png(paste0("Venndiagram_CpGs_EPIC_",colnames(VDdata),".png"))
 vennDiagram(vennCounts(VDdata),circle.col=c("red","green"))
-dev.off()  
-
 
 # B2 vs B3
 VDdata<-NULL
@@ -2144,9 +2131,7 @@ VDdata$CpGs<-NULL
 
 VDdata<-as.data.frame(VDdata)
 
-png(paste0("Venndiagram_CpGs_EPIC_",colnames(VDdata),".png"))
 vennDiagram(vennCounts(VDdata),circle.col=c("red","green"))
-dev.off()  
 
 # A2 vs. A4
 VDdata<-NULL
@@ -2161,9 +2146,7 @@ VDdata$CpGs<-NULL
 
 VDdata<-as.data.frame(VDdata)
 
-png(paste0("Venndiagram_CpGs_EPIC_",colnames(VDdata),".png"))
 vennDiagram(vennCounts(VDdata),circle.col=c("red","green"))
-dev.off()  
 
 
 # B2 vs B4
@@ -2179,7 +2162,6 @@ VDdata$CpGs<-NULL
 
 VDdata<-as.data.frame(VDdata)
 
-png(paste0("Venndiagram_CpGs_EPIC_",colnames(VDdata),".png"))
 vennDiagram(vennCounts(VDdata),circle.col=c("red","green"))
 dev.off()  
 
@@ -2235,10 +2217,12 @@ require(EASIER)
 ########## ----------  VARIABLES DEFINED BY USER  ----------  ##########
 
 # Set working directory to enrichment folder
-setwd("./Enrichment")
+setwd("/home/isglobal.lan/jaumatell/data/WS_INMA/Methylation_INMA/PACE/airpollution_placenta/results/INMA/EPIC/Enrichment/"
+)
 
 # Files with CpG data to enrich may be a CpGs list or annotated GWAMA output
-FilesToEnrich <- c('./PACE_EPIC_Significative_Results_31-08.txt')
+FilesToEnrich <- c("/home/isglobal.lan/jaumatell/data/WS_INMA/Methylation_INMA/PACE/airpollution_placenta/results/INMA/EPIC/Enrichment/TopA2CpGs.txt","/home/isglobal.lan/jaumatell/data/WS_INMA/Methylation_INMA/PACE/airpollution_placenta/results/INMA/EPIC/Enrichment/TopB2CpGs.txt","/home/isglobal.lan/jaumatell/data/WS_INMA/Methylation_INMA/PACE/airpollution_placenta/results/INMA/EPIC/Enrichment/TopC2CpGs.txt","/home/isglobal.lan/jaumatell/data/WS_INMA/Methylation_INMA/PACE/airpollution_placenta/results/INMA/EPIC/Enrichment/TopD2CpGs.txt"
+)
 
 # Values for adjustment
 BN <-  TRUE    # Use Bonferroni ?
@@ -2247,7 +2231,7 @@ pvalue <- 0.05 # significance level for p-value, if NA p-value is not used
 
 # Array type, used : EPIC or 450K
 # this data is defined for each file to analyse
-artype <- c('EPIC')
+artype <- c('EPIC','EPIC','EPIC','EPIC')
 
 # Result paths definition for QC, Meta-Analysis and Enrichment
 results_folder <- 'QC_Results'
@@ -2275,7 +2259,6 @@ testdata <- 'Fisher'
 bEQTM <- FALSE
 
 ########## ----------  END VARIABLES DEFINED BY USER  ----------  ##########
-
 
 
 
