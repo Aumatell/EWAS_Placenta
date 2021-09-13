@@ -1993,51 +1993,51 @@ write.table(TopResB4, "PACE_EPIC_ModelB4_15-08_TopResults.txt",na="NA")
 # Volcano plots
 
 png("VolcanoA1")
-plot_volcano(TopResA1, "BETA", "P_VAL", nCpGs, main = "MODEL A1 : NO2")
+plot_volcano(TopResA1, "BETA", "p.value", nCpGs, main = "MODEL A1 : NO2")
 dev.off()
 
 png("VolcanoB1")
-plot_volcano(TopResB1, "BETA", "P_VAL", nCpGs, main = "MODEL B1 : PM2.5")
+plot_volcano(TopResB1, "BETA", "p.value", nCpGs, main = "MODEL B1 : PM2.5")
 dev.off()
 
 png("VolcanoC1")
-plot_volcano(TopResC1, "BETA", "P_VAL", nCpGs, main = "MODEL C1 : PM2.5 Abs.")
+plot_volcano(TopResC1, "BETA", "p.value", nCpGs, main = "MODEL C1 : PM2.5 Abs.")
 dev.off()
 
 png("VolcanoD1")
-plot_volcano(TopResD1, "BETA", "P_VAL", nCpGs, main = "MODEL D1 : PM10")
+plot_volcano(TopResD1, "BETA", "p.value", nCpGs, main = "MODEL D1 : PM10")
 dev.off()
 
 png("VolcanoA2")
-plot_volcano(TopResA2, "BETA", "P_VAL", nCpGs, main = "MODEL A2 : NO2 + cell")
+plot_volcano(TopResA2, "BETA", "p.value", nCpGs, main = "MODEL A2 : NO2 + cell")
 dev.off()
 
 png("VolcanoB2")
-plot_volcano(TopResB2, "BETA", "P_VAL", nCpGs, main = "MODEL B2 : PM2.5 + cell")
+plot_volcano(TopResB2, "BETA", "p.value", nCpGs, main = "MODEL B2 : PM2.5 + cell")
 dev.off()
 
 png("VolcanoC2")
-plot_volcano(TopResC2, "BETA", "P_VAL", nCpGs, main = "MODEL C2 : PM2.5 Abs. + cell")
+plot_volcano(TopResC2, "BETA", "p.value", nCpGs, main = "MODEL C2 : PM2.5 Abs. + cell")
 dev.off()
 
 png("VolcanoD2")
-plot_volcano(TopResD2, "BETA", "P_VAL", nCpGs, main = "MODEL D2 : PM10 + cell")
+plot_volcano(TopResD2, "BETA", "p.value", nCpGs, main = "MODEL D2 : PM10 + cell")
 dev.off()
 
 png("VolcanoA3")
-plot_volcano(TopResA3, "BETA", "P_VAL", nCpGs, main = "MODEL A3 : NO2 + Non smoking + cell")
+plot_volcano(TopResA3, "BETA", "p.value", nCpGs, main = "MODEL A3 : NO2 + Non smoking + cell")
 dev.off()
 
 png("VolcanoB3")
-plot_volcano(TopResB3, "BETA", "P_VAL", nCpGs, main = "MODEL B3 : PM2.5 + Non smoking + cell")
+plot_volcano(TopResB3, "BETA", "p.value", nCpGs, main = "MODEL B3 : PM2.5 + Non smoking + cell")
 dev.off()
 
 png("VolcanoA4")
-plot_volcano(TopResA4, "BETA", "P_VAL", nCpGs, main = "MODEL A4 : NO2+ European + cell")
+plot_volcano(TopResA4, "BETA", "p.value", nCpGs, main = "MODEL A4 : NO2+ European + cell")
 dev.off()
 
 png("VolcanoB4")
-plot_volcano(TopResB4, "BETA", "P_VAL", nCpGs, main = "MODEL B4 : PM2.5 + European + cell")
+plot_volcano(TopResB4, "BETA", "p.value", nCpGs, main = "MODEL B4 : PM2.5 + European + cell")
 dev.off()
 
 ################################################################################
@@ -2047,11 +2047,11 @@ dev.off()
 # A1 vs. A2
 VDdata<-NULL
 
-VDdata$CpGs<-unique(c(TopResA1$probeID,TopResA2$probeID))
+VDdata$CpGs<-unique(c(TopResA1$CpGs,TopResA2$CpGs))
 
-VDdata$A1<- VDdata$CpGs %in% TopResA1$probeID
+VDdata$A1<- VDdata$CpGs %in% TopResA1$CpGs
 
-VDdata$A2<- VDdata$CpGs %in% TopResA2$probeID
+VDdata$A2<- VDdata$CpGs %in% TopResA2$CpGs
 
 VDdata$CpGs<-NULL
 
@@ -2065,11 +2065,11 @@ dev.off()
 # B1 vs B2
 VDdata<-NULL
 
-VDdata$CpGs<-unique(c(TopResB1$probeID,TopResB2$probeID))
+VDdata$CpGs<-unique(c(TopResB1$CpGs,TopResB2$CpGs))
 
-VDdata$B1<- VDdata$CpGs %in% TopResB1$probeID
+VDdata$B1<- VDdata$CpGs %in% TopResB1$CpGs
 
-VDdata$B2<- VDdata$CpGs %in% TopResB2$probeID
+VDdata$B2<- VDdata$CpGs %in% TopResB2$CpGs
 
 VDdata$CpGs<-NULL
 
@@ -2082,11 +2082,11 @@ dev.off()
 # C1 vs C2
 VDdata<-NULL
 
-VDdata$CpGs<-unique(c(TopResC1$probeID,TopResC2$probeID))
+VDdata$CpGs<-unique(c(TopResC1$CpGs,TopResC2$CpGs))
 
-VDdata$C1<- VDdata$CpGs %in% TopResC1$probeID
+VDdata$C1<- VDdata$CpGs %in% TopResC1$CpGs
 
-VDdata$C2<- VDdata$CpGs %in% TopResC2$probeID
+VDdata$C2<- VDdata$CpGs %in% TopResC2$CpGs
 
 VDdata$CpGs<-NULL
 
@@ -2099,11 +2099,11 @@ dev.off()
 #D1 vs D2
 VDdata<-NULL
 
-VDdata$CpGs<-unique(c(TopResC1$probeID,TopResC2$probeID))
+VDdata$CpGs<-unique(c(TopResD1$CpGs,TopResD2$CpGs))
 
-VDdata$D1<- VDdata$CpGs %in% TopResD1$probeID
+VDdata$D1<- VDdata$CpGs %in% TopResD1$CpGs
 
-VDdata$D2<- VDdata$CpGs %in% TopResD2$probeID
+VDdata$D2<- VDdata$CpGs %in% TopResD2$CpGs
 
 VDdata$CpGs<-NULL
 
@@ -2113,15 +2113,104 @@ png(paste0("Venndiagram_CpGs_EPIC_",colnames(VDdata),".png"))
 vennDiagram(vennCounts(VDdata),circle.col=c("red","green"))
 dev.off()  
 
+# A2 vs. A3
+VDdata<-NULL
+
+VDdata$CpGs<-unique(c(TopResA2$CpGs,TopResA3$CpGs))
+
+VDdata$A2<- VDdata$CpGs %in% TopResA2$CpGs
+
+VDdata$A3<- VDdata$CpGs %in% TopResA3$CpGs
+
+VDdata$CpGs<-NULL
+
+VDdata<-as.data.frame(VDdata)
+
+png(paste0("Venndiagram_CpGs_EPIC_",colnames(VDdata),".png"))
+vennDiagram(vennCounts(VDdata),circle.col=c("red","green"))
+dev.off()  
+
+
+# B2 vs B3
+VDdata<-NULL
+
+VDdata$CpGs<-unique(c(TopResB2$CpGs,TopResB3$CpGs))
+
+VDdata$B2<- VDdata$CpGs %in% TopResB2$CpGs
+
+VDdata$B3<- VDdata$CpGs %in% TopResB3$CpGs
+
+VDdata$CpGs<-NULL
+
+VDdata<-as.data.frame(VDdata)
+
+png(paste0("Venndiagram_CpGs_EPIC_",colnames(VDdata),".png"))
+vennDiagram(vennCounts(VDdata),circle.col=c("red","green"))
+dev.off()  
+
+# A2 vs. A4
+VDdata<-NULL
+
+VDdata$CpGs<-unique(c(TopResA2$CpGs,TopResA4$CpGs))
+
+VDdata$A2<- VDdata$CpGs %in% TopResA2$CpGs
+
+VDdata$A4<- VDdata$CpGs %in% TopResA4$CpGs
+
+VDdata$CpGs<-NULL
+
+VDdata<-as.data.frame(VDdata)
+
+png(paste0("Venndiagram_CpGs_EPIC_",colnames(VDdata),".png"))
+vennDiagram(vennCounts(VDdata),circle.col=c("red","green"))
+dev.off()  
+
+
+# B2 vs B4
+VDdata<-NULL
+
+VDdata$CpGs<-unique(c(TopResB2$CpGs,TopResB4$CpGs))
+
+VDdata$B2<- VDdata$CpGs %in% TopResB2$CpGs
+
+VDdata$B4<- VDdata$CpGs %in% TopResB4$CpGs
+
+VDdata$CpGs<-NULL
+
+VDdata<-as.data.frame(VDdata)
+
+png(paste0("Venndiagram_CpGs_EPIC_",colnames(VDdata),".png"))
+vennDiagram(vennCounts(VDdata),circle.col=c("red","green"))
+dev.off()  
+
+
+# X1
+VDdata<-NULL
+
+VDdata$CpGs<-unique(c(TopResA1$CpGs,TopResB1$CpGs, TopResC1$CpGs,TopResD1$CpGs))
+
+VDdata$A1<- VDdata$CpGs %in% TopResA1$CpGs
+VDdata$B1<- VDdata$CpGs %in% TopResB1$CpGs
+VDdata$C1<- VDdata$CpGs %in% TopResC1$CpGs
+VDdata$D1<- VDdata$CpGs %in% TopResD1$CpGs
+
+VDdata$CpGs<-NULL
+
+VDdata<-as.data.frame(VDdata)
+
+png(paste0("Venndiagram_CpGs_EPIC_",colnames(VDdata),".png", collapse = "_"))
+vennDiagram(vennCounts(VDdata),circle.col=c("red","green","blue","yellow"))
+dev.off()  
+
 # X2
 VDdata<-NULL
 
-VDdata$CpGs<-unique(c(TopResA2$probeID,TopResB2$probeID, TopResC2$probeID,TopResD2$probeID))
+VDdata$CpGs<-unique(c(TopResA2$CpGs,TopResB2$CpGs, TopResC2$CpGs,TopResD2$CpGs))
 
-VDdata$A2<- VDdata$CpGs %in% TopResA2$probeID
-VDdata$B2<- VDdata$CpGs %in% TopResB2$probeID
-VDdata$C2<- VDdata$CpGs %in% TopResC2$probeID
-VDdata$D2<- VDdata$CpGs %in% TopResD2$probeID
+VDdata$A2<- VDdata$CpGs %in% TopResA2$CpGs
+VDdata$B2<- VDdata$CpGs %in% TopResB2$CpGs
+VDdata$C2<- VDdata$CpGs %in% TopResC2$CpGs
+VDdata$D2<- VDdata$CpGs %in% TopResD2$CpGs
 
 VDdata$CpGs<-NULL
 
