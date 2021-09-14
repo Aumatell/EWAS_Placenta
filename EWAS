@@ -1338,8 +1338,8 @@ PHENO<-pheno.absf
 PHENO<-PHENO[PHENO[,12]==0,]
 
 ### REMOVE THE INDIVIDUALS WITH MISSING INFORMATION 
-
-PHENO<-PHENO[-which(duplicated(PHENO[,c(2,6,8:15)], fromLast = TRUE)),]
+duplicated(PHENO[,c(2,6,8:15)], fromLast = TRUE)
+#PHENO<-PHENO[-which(duplicated(PHENO[,c(2,6,8:15)], fromLast = TRUE)),]
 fnbetas.adj<-fnbetas.adj.OG[,(colnames(fnbetas.adj.OG)  %in% PHENO$Basename)]
 omegas<-omegas.OG[(rownames(omegas.OG)  %in% PHENO$Basename),]
 
@@ -1460,12 +1460,16 @@ dev.off()
 write.table(all.resultsC3, "PACE_EPIC_ModelC3_15-08f.txt",na="NA")
 gzip("PACE_EPIC_ModelC3_15-08f.txt")
 
+
+
 PHENO<-pheno.pm10f
 PHENO<-PHENO[PHENO[,12]==0,]
 
+
 ### REMOVE THE INDIVIDUALS WITH MISSING INFORMATION 
 
-PHENO<-PHENO[-which(duplicated(PHENO[,c(2,4,8:15)], fromLast = TRUE)),]
+duplicated(PHENO[,c(2,4,8:15)], fromLast = TRUE)
+#PHENO<-PHENO[-which(duplicated(PHENO[,c(2,4,8:15)], fromLast = TRUE)),]
 fnbetas.adj<-fnbetas.adj.OG[,(colnames(fnbetas.adj.OG)  %in% PHENO$Basename)]
 omegas<-omegas.OG[(rownames(omegas.OG)  %in% PHENO$Basename),]
 
@@ -1523,8 +1527,8 @@ table(ifelse(rownames(omegas)==rownames(beta_matrix),"MATCHED","Not Matched"))
 
 #Add function for running the model 
 
-RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X5, X6, X7, cell1, cell2, cell3, cell4, cell5, cell6, cell7) {
-    mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+cell1+cell2+cell3+cell4+cell5+cell6+cell7,maxit=200))
+RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X6, X7, cell1, cell2, cell3, cell4, cell5, cell6, cell7) {
+    mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X6+X7+cell1+cell2+cell3+cell4+cell5+cell6+cell7,maxit=200))
     if(class(mod) == "try-error"){
         print(paste("error thrown by column", methcol))
         invisible(rep(NA, 3))
@@ -1548,7 +1552,7 @@ system.time(ind.resD3 <- mclapply(setNames(seq_len(ncol(beta_matrix)), dimnames(
                                   , X2=PHENO[,9]	# child sex
                                   , X3=PHENO[,10]	# Parity 
                                   , X4=PHENO[,11]	# Maternal education 
-                                  , X5=PHENO[,2]	# Cohort
+                                  #, X5=PHENO[,2]	# Cohort
                                   , X6=PHENO[,13]	# neighbourhood SES 
                                   , X7=PHENO[,14]	# Season of conception
                                   #, X8=PHENO[,15]	# ancestry  
@@ -1844,8 +1848,8 @@ PHENO<-pheno.absf
 PHENO<-PHENO[PHENO[,15]=="European",]
 
 ### REMOVE THE INDIVIDUALS WITH MISSING INFORMATION 
-
-PHENO<-PHENO[-which(duplicated(PHENO[,c(2,6,8:15)], fromLast = TRUE)),]
+duplicated(PHENO[,c(2,6,8:15)], fromLast = TRUE)
+#PHENO<-PHENO[-which(duplicated(PHENO[,c(2,6,8:15)], fromLast = TRUE)),]
 fnbetas.adj<-fnbetas.adj.OG[,(colnames(fnbetas.adj.OG)  %in% PHENO$Basename)]
 omegas<-omegas.OG[(rownames(omegas.OG)  %in% PHENO$Basename),]
 
@@ -1971,8 +1975,8 @@ PHENO<-pheno.pm10f
 PHENO<-PHENO[PHENO[,15]=="European",]
 
 ### REMOVE THE INDIVIDUALS WITH MISSING INFORMATION 
-
-PHENO<-PHENO[-which(duplicated(PHENO[,c(2,4,8:15)], fromLast = TRUE)),]
+duplicated(PHENO[,c(2,4,8:15)], fromLast = TRUE)
+#PHENO<-PHENO[-which(duplicated(PHENO[,c(2,4,8:15)], fromLast = TRUE)),]
 fnbetas.adj<-fnbetas.adj.OG[,(colnames(fnbetas.adj.OG)  %in% PHENO$Basename)]
 omegas<-omegas.OG[(rownames(omegas.OG)  %in% PHENO$Basename),]
 
