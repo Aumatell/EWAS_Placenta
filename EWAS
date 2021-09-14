@@ -2740,7 +2740,7 @@ VDdata$B4<- VDdata$CpGs %in% TopResB4$CpGs
 VDdata$CpGs<-NULL
 VDdata<-as.data.frame(VDdata)
 vennDiagram(vennCounts(VDdata),circle.col=c("red","green"))
-dev.off()  
+ 
 
 # C2 vs C4
 VDdata<-NULL
@@ -2750,7 +2750,7 @@ VDdata$C4<- VDdata$CpGs %in% TopResC4$CpGs
 VDdata$CpGs<-NULL
 VDdata<-as.data.frame(VDdata)
 vennDiagram(vennCounts(VDdata),circle.col=c("red","green"))
-dev.off()  
+  
 
 # D2 vs D4
 VDdata<-NULL
