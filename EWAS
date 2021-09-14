@@ -1906,8 +1906,8 @@ table(ifelse(rownames(omegas)==rownames(beta_matrix),"MATCHED","Not Matched"))
 
 #Add function for running the model 
 
-RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X5, X6, X7, X8, cell1, cell2, cell3, cell4, cell5, cell6, cell7) {
-    mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+X8+cell1+cell2+cell3+cell4+cell5+cell6+cell7,maxit=200))
+RLMtest = function(meth_matrix,methcol,exposure, X1, X2, X3, X4, X5, X6, X7, cell1, cell2, cell3, cell4, cell5, cell6, cell7) {
+    mod = try(rlm(meth_matrix[, methcol]~exposure+X1+X2+X3+X4+X5+X6+X7+cell1+cell2+cell3+cell4+cell5+cell6+cell7,maxit=200))
     if(class(mod) == "try-error"){
         print(paste("error thrown by column", methcol))
         invisible(rep(NA, 3))
@@ -1934,7 +1934,7 @@ system.time(ind.resC4 <- mclapply(setNames(seq_len(ncol(beta_matrix)), dimnames(
                                   , X5=PHENO[,12]	# Maternal smoking during pregnancy
                                   , X6=PHENO[,13]	# neighbourhood SES
                                   , X7=PHENO[,14]	# Season of conception
-                                  , X8=PHENO[,2]	# (cohort)  
+                                  #, X8=PHENO[,2]	# (cohort)  
                                   , cell1 = omegas[,1]
                                   , cell2 = omegas[,2]
                                   , cell3 = omegas[,3]
@@ -1975,8 +1975,8 @@ PHENO<-pheno.pm10f
 PHENO<-PHENO[PHENO[,15]=="European",]
 
 ### REMOVE THE INDIVIDUALS WITH MISSING INFORMATION 
-duplicated(PHENO[,c(2,4,8:15)], fromLast = TRUE)
-#PHENO<-PHENO[-which(duplicated(PHENO[,c(2,4,8:15)], fromLast = TRUE)),]
+#duplicated(PHENO[,c(2,4,8:15)], fromLast = TRUE)
+PHENO<-PHENO[-which(duplicated(PHENO[,c(2,4,8:15)], fromLast = TRUE)),]
 fnbetas.adj<-fnbetas.adj.OG[,(colnames(fnbetas.adj.OG)  %in% PHENO$Basename)]
 omegas<-omegas.OG[(rownames(omegas.OG)  %in% PHENO$Basename),]
 
@@ -2022,6 +2022,7 @@ table(ifelse(rownames(omegas)==PHENO$Basename,"MATCHED","Not Matched"))
 #MATCHED 168
 table(ifelse(rownames(omegas)==rownames(beta_matrix),"MATCHED","Not Matched"))
 #MATCHED 168 
+
 ################################################################################
 ########################## Model D4 ############################################
 ################################################################################
@@ -2062,7 +2063,7 @@ system.time(ind.resD4 <- mclapply(setNames(seq_len(ncol(beta_matrix)), dimnames(
                                   #, X5=PHENO[,2]	# Cohort
                                   , X6=PHENO[,13]	# neighbourhood SES 
                                   , X7=PHENO[,14]	# Season of conception
-                                  , X8=PHENO[,11]	# Maternal smoking  
+                                  , X8=PHENO[,12]	# Maternal smoking  
                                   , cell1 = omegas[,1]
                                   , cell2 = omegas[,2]
                                   , cell3 = omegas[,3]
@@ -2105,10 +2106,10 @@ write.table(data.frame(Model = c("A1","B1","C1","D1","A2","B2","C2","D2","A3","B
 # step 8: Correlation between models with different variables
 #################################################################################
 
-### CHECK CPG ORDER! (merge )
-check<-list(all.resultsA1, all.resultsB1, all.resultsC1, all.resultsD1, all.resultsA3, all.resultsB3, all.resultsA4, all.resultsB4, all.resultsA2, all.resultsA2, all.resultsA2, all.resultsB2, all.resultsB2, all.resultsC2)
-Bmod<-list(all.resultsA2, all.resultsB2, all.resultsC2, all.resultsD2, all.resultsA2, all.resultsB2, all.resultsA2 , all.resultsB2, all.resultsB2, all.resultsC2, all.resultsD2, all.resultsC2, all.resultsD2, all.resultsD2)
-namesmods<-c("A1_A2","B1_B2","C1_C2","D1_D2","A3_A2","B3_B2","A4_A2","B4_B2","A2_B2","A2_C2","A2_D2","B2_C2","B2_D2","C2_D2")
+### Data preparation
+check<-list(all.resultsA1, all.resultsB1, all.resultsC1, all.resultsD1, all.resultsA3, all.resultsB3, all.resultsC3, all.resultsD3, all.resultsA4, all.resultsB4, all.resultsC4, all.resultsD4, all.resultsA2, all.resultsA2, all.resultsA2, all.resultsB2, all.resultsB2, all.resultsC2)
+Bmod<-list(all.resultsA2, all.resultsB2, all.resultsC2, all.resultsD2, all.resultsA2, all.resultsB2, all.resultsC2, all.resultsD2, all.resultsA2 , all.resultsB2,all.resultsC2, all.resultsD2, all.resultsB2, all.resultsC2, all.resultsD2, all.resultsC2, all.resultsD2, all.resultsD2)
+namesmods<-c("A1_A2","B1_B2","C1_C2","D1_D2","A3_A2","B3_B2","C3_C2","D3_D2", "A4_A2","B4_B2","C4_C2","D4_D2","A2_B2","A2_C2","A2_D2","B2_C2","B2_D2","C2_D2")
 CorrelationCPG_pval<-NULL
 CorrelationCPG_pval_P<-NULL
 CorrelationCPG_betas<-NULL
@@ -2170,28 +2171,7 @@ for( i in c(3:7)){
   names(polnavec)[names(polnavec)=="new"] <- colnames(PHENO[i])
 }
 
-colSums(polnavec)
 
-#### Venn diagram per expos
-
-for (cohort in unique(PHENO$cohort.x)){
-  a <- vennCounts(!apply(PHENO[PHENO$cohort.x==cohort,69:73]),2,is.na)
-  vennDiagram(a);title(cohort)
-}
-maxlen<-length(colnames(polnavec))
-Venndata<-NULL
-
-for (i in c(1,2,3,4,5)){
-  if(i<5){
-    rg<-(i+1):5
-    for (j in rg){
-      print(paste(colnames(polnavec)[i],"_",colnames(polnavec)[j]))
-      N<-length(which(polnavec[,i]==1 & polnavec[,j]==1))
-      print(N)
-      Venndata<-c(Venndata, c(colnames(polnavec),N))
-    }
-  }
-}
 png("Venndiagram_Subjects_EPIC.png")
 vennDiagram(vennCounts(polnavec),circle.col=c("red","green","blue","yellow","purple"))
 dev.off()    
@@ -2461,6 +2441,54 @@ length(unique(do.call(c,strsplit(gsub(";","\n",FDRSig$UCSC_RefGene_Name),"\n")))
 # save suggestive results
 write.table(TopResB3, "PACE_EPIC_ModelB3_15-08_TopResults.txt",na="NA")
 
+# FDR 
+all.resultsC3$FDR<-p.adjust(all.resultsC3$P_VAL, method = "fdr")
+all.resultsC3$Bonferroni<-p.adjust(all.resultsC3$P_VAL, method = "bonferroni")
+# Selection by threshold
+SigResC3<-all.resultsC3[all.resultsC3$P_VAL<pvthresh,]
+TopResC3<-SigResC3[order(SigResC3$P_VAL), ]
+#Get annotation 
+AnnotC3<-EASIER::get_annotattions(all.resultsC3$probeID,"EPIC","AnotatedC3.txt","/home/isglobal.lan/jaumatell/data/WS_INMA/Methylation_INMA/PACE/airpollution_placenta/results/INMA/EPIC/Enrichment/")
+TopResC3 <- merge(TopResC3,AnnotC3[,c("Name","chr","pos","strand","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
+names(TopResC3)[names(TopResC3)=="probeID"] <- "CpGs"
+names(TopResC3)[names(TopResC3)=="P_VAL"] <- "p.value"
+TopResC3$rs_numberer<-TopResC3$BETA
+#Suggestive CpGs, FDR CpGs, Suggestive genes, FDR genes
+dim(TopResC3)
+BFSig<-TopResC3[TopResC3$Bonferroni<pvthresh,]
+dim(BFSig)
+FDRSig<-TopResC3[TopResC3$FDR<pvthresh,]
+dim(FDRSig)
+length(unique(do.call(c,strsplit(gsub(";","\n",TopResC3$UCSC_RefGene_Name),"\n"))))
+length(unique(do.call(c,strsplit(gsub(";","\n",BFSig$UCSC_RefGene_Name),"\n"))))
+length(unique(do.call(c,strsplit(gsub(";","\n",FDRSig$UCSC_RefGene_Name),"\n"))))
+# save suggestive results
+write.table(TopResC3, "PACE_EPIC_ModelC3_15-08_TopResults.txt",na="NA")
+
+# FDR 
+all.resultsD3$FDR<-p.adjust(all.resultsD3$P_VAL, method = "fdr")
+all.resultsD3$Bonferroni<-p.adjust(all.resultsD3$P_VAL, method = "bonferroni")
+# Selection by threshold
+SigResD3<-all.resultsD3[all.resultsD3$P_VAL<pvthresh,]
+TopResD3<-SigResD3[order(SigResD3$P_VAL), ]
+#Get annotation 
+AnnotD3<-EASIER::get_annotattions(all.resultsD3$probeID,"EPIC","AnotatedD3.txt","/home/isglobal.lan/jaumatell/data/WS_INMA/Methylation_INMA/PACE/airpollution_placenta/results/INMA/EPIC/Enrichment/")
+TopResD3 <- merge(TopResD3,AnnotD3[,c("Name","chr","pos","strand","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
+names(TopResD3)[names(TopResD3)=="probeID"] <- "CpGs"
+names(TopResD3)[names(TopResD3)=="P_VAL"] <- "p.value"
+TopResD3$rs_numberer<-TopResD3$BETA
+#Suggestive CpGs, FDR CpGs, Suggestive genes, FDR genes
+dim(TopResD3)
+BFSig<-TopResD3[TopResD3$Bonferroni<pvthresh,]
+dim(BFSig)
+FDRSig<-TopResD3[TopResD3$FDR<pvthresh,]
+dim(FDRSig)
+length(unique(do.call(c,strsplit(gsub(";","\n",TopResD3$UCSC_RefGene_Name),"\n"))))
+length(unique(do.call(c,strsplit(gsub(";","\n",BFSig$UCSC_RefGene_Name),"\n"))))
+length(unique(do.call(c,strsplit(gsub(";","\n",FDRSig$UCSC_RefGene_Name),"\n"))))
+# save suggestive results
+write.table(TopResD3, "PACE_EPIC_ModelD3_15-08_TopResults.txt",na="NA")
+
 
 # FDR 
 all.resultsA4$FDR<-p.adjust(all.resultsA4$P_VAL, method = "fdr")
@@ -2510,34 +2538,100 @@ length(unique(do.call(c,strsplit(gsub(";","\n",FDRSig$UCSC_RefGene_Name),"\n")))
 # save suggestive results
 write.table(TopResB4, "PACE_EPIC_ModelB4_15-08_TopResults.txt",na="NA")
 
+# FDR 
+all.resultsC4$FDR<-p.adjust(all.resultsC4$P_VAL, method = "fdr")
+all.resultsC4$Bonferroni<-p.adjust(all.resultsC4$P_VAL, method = "bonferroni")
+# Selection by threshold
+SigResC4<-all.resultsC4[all.resultsC4$P_VAL<pvthresh,]
+TopResC4<-SigResC4[order(SigResC4$P_VAL), ]
+#Get annotation 
+AnnotC4<-EASIER::get_annotattions(all.resultsC4$probeID,"EPIC","AnotatedC4.txt","/home/isglobal.lan/jaumatell/data/WS_INMA/Methylation_INMA/PACE/airpollution_placenta/results/INMA/EPIC/Enrichment/")
+TopResC4 <- merge(TopResC4,AnnotC4[,c("Name","chr","pos","strand","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
+names(TopResC4)[names(TopResC4)=="probeID"] <- "CpGs"
+names(TopResC4)[names(TopResC4)=="P_VAL"] <- "p.value"
+TopResC4$rs_numberer<-TopResC4$BETA
+#Suggestive CpGs, FDR CpGs, Suggestive genes, FDR genes
+dim(TopResC4)
+BFSig<-TopResC4[TopResC4$Bonferroni<pvthresh,]
+dim(BFSig)
+FDRSig<-TopResC4[TopResC4$FDR<pvthresh,]
+dim(FDRSig)
+length(unique(do.call(c,strsplit(gsub(";","\n",TopResC4$UCSC_RefGene_Name),"\n"))))
+length(unique(do.call(c,strsplit(gsub(";","\n",BFSig$UCSC_RefGene_Name),"\n"))))
+length(unique(do.call(c,strsplit(gsub(";","\n",FDRSig$UCSC_RefGene_Name),"\n"))))
+# save suggestive results
+write.table(TopResC4, "PACE_EPIC_ModelC4_15-08_TopResults.txt",na="NA")
+
+# FDR 
+all.resultsD4$FDR<-p.adjust(all.resultsD4$P_VAL, method = "fdr")
+all.resultsD4$Bonferroni<-p.adjust(all.resultsD4$P_VAL, method = "bonferroni")
+# Selection by threshold
+SigResD4<-all.resultsD4[all.resultsD4$P_VAL<pvthresh,]
+TopResD4<-SigResD4[order(SigResD4$P_VAL), ]
+#Get annotation 
+AnnotD4<-EASIER::get_annotattions(all.resultsD4$probeID,"EPIC","AnotatedD4.txt","/home/isglobal.lan/jaumatell/data/WS_INMA/Methylation_INMA/PACE/airpollution_placenta/results/INMA/EPIC/Enrichment/")
+TopResD4 <- merge(TopResD4,AnnotD4[,c("Name","chr","pos","strand","UCSC_RefGene_Name","Relation_to_Island","UCSC_RefGene_Group")], by.x="probeID", by.y="Name")
+names(TopResD4)[names(TopResD4)=="probeID"] <- "CpGs"
+names(TopResD4)[names(TopResD4)=="P_VAL"] <- "p.value"
+TopResD4$rs_numberer<-TopResD4$BETA
+#Suggestive CpGs, FDR CpGs, Suggestive genes, FDR genes
+dim(TopResD4)
+BFSig<-TopResD4[TopResD4$Bonferroni<pvthresh,]
+dim(BFSig)
+FDRSig<-TopResD4[TopResD4$FDR<pvthresh,]
+dim(FDRSig)
+length(unique(do.call(c,strsplit(gsub(";","\n",TopResD4$UCSC_RefGene_Name),"\n"))))
+length(unique(do.call(c,strsplit(gsub(";","\n",BFSig$UCSC_RefGene_Name),"\n"))))
+length(unique(do.call(c,strsplit(gsub(";","\n",FDRSig$UCSC_RefGene_Name),"\n"))))
+# save suggestive results
+write.table(TopResD4, "PACE_EPIC_ModelD4_15-08_TopResults.txt",na="NA")
+
+
 
 ################################################################################
 
 # Volcano plots
 
+Hipo_hyper<-NULL
+Tops<-c(all.resultsA1, all.resultsA2,all.resultsA3,all.resultsA4,all.resultsB1,all.resultsB2,all.resultsB3,all.resultsB4,all.resultsC1,all.resultsC2,all.resultsC3,all.resultsC4,all.resultsD1,all.resultsD2,all.resultsD3,all.resultsD4)
+For (i in 1:16){
+  DA<-Tops[i]
+  Hipo_hyper$Hipo[i]<-len(DA[,2][DA[,2] < as.numeric(-0.01)])
+  Hipo_hyper$Hyper[i]<-len(DA[,2][DA[,2]>0.01])
+}
+Hipo_hyper
+
 png("VolcanoX1.png")
 par(mfrow= c(2,2))
 
-plot_volcano(TopResA1, "BETA", "p.value", nCpGs, main = "MODEL A1 : NO2")
-plot_volcano(TopResB1, "BETA", "p.value", nCpGs, main = "MODEL B1 : PM2.5")
-plot_volcano(TopResC1, "BETA", "p.value", nCpGs, main = "MODEL C1 : PM2.5 Abs.")
-plot_volcano(TopResD1, "BETA", "p.value", nCpGs, main = "MODEL D1 : PM10")
+plot_volcano(all.resultsA1, "BETA", "P_VAL", nCpGs, main = "MODEL A1 : NO2")
+plot_volcano(all.resultsB1, "BETA", "P_VAL", nCpGs, main = "MODEL B1 : PM2.5")
+plot_volcano(all.resultsC1, "BETA", "P_VAL", nCpGs, main = "MODEL C1 : PM2.5 Abs.")
+plot_volcano(all.resultsD1, "BETA", "P_VAL", nCpGs, main = "MODEL D1 : PM10")
 dev.off()
 
 png("VolcanoX2.png")
 par(mfrow= c(2,2))
-plot_volcano(TopResA2, "BETA", "p.value", nCpGs, main = "MODEL A2 : NO2 + cell")
-plot_volcano(TopResB2, "BETA", "p.value", nCpGs, main = "MODEL B2 : PM2.5 + cell")
-plot_volcano(TopResC2, "BETA", "p.value", nCpGs, main = "MODEL C2 : PM2.5 Abs. + cell")
-plot_volcano(TopResD2, "BETA", "p.value", nCpGs, main = "MODEL D2 : PM10 + cell")
+plot_volcano(all.resultsA2, "BETA", "P_VAL", nCpGs, main = "MODEL A2 : NO2 + cell")
+plot_volcano(all.resultsB2, "BETA", "P_VAL", nCpGs, main = "MODEL B2 : PM2.5 + cell")
+plot_volcano(all.resultsC2, "BETA", "P_VAL", nCpGs, main = "MODEL C2 : PM2.5 Abs. + cell")
+plot_volcano(all.resultsD2, "BETA", "P_VAL", nCpGs, main = "MODEL D2 : PM10 + cell")
 dev.off()
 
-png("VolcanoX3_X4.png")
+png("VolcanoX3.png")
 par(mfrow= c(2,2))
-plot_volcano(TopResA3, "BETA", "p.value", nCpGs, main = "MODEL A3 : NO2 + Non smoking + cell")
-plot_volcano(TopResB3, "BETA", "p.value", nCpGs, main = "MODEL B3 : PM2.5 + Non smoking + cell")
-plot_volcano(TopResA4, "BETA", "p.value", nCpGs, main = "MODEL A4 : NO2+ European + cell")
-plot_volcano(TopResB4, "BETA", "p.value", nCpGs, main = "MODEL B4 : PM2.5 + European + cell")
+plot_volcano(all.resultsA3, "BETA", "P_VAL", nCpGs, main = "MODEL A3 : NO2 + Non smoking + cell")
+plot_volcano(all.resultsB3, "BETA", "P_VAL", nCpGs, main = "MODEL B3 : PM2.5 + Non smoking + cell")
+plot_volcano(all.resultsC3, "BETA", "P_VAL", nCpGs, main = "MODEL A3 : PM2.5 Abs + Non smoking + cell")
+plot_volcano(all.resultsD3, "BETA", "P_VAL", nCpGs, main = "MODEL B3 : PM10 + Non smoking + cell")
+dev.off()
+
+png("VolcanoX4.png")
+par(mfrow= c(2,2))
+plot_volcano(all.resultsA4, "BETA", "P_VAL", nCpGs, main = "MODEL A4 : NO2+ European + cell")
+plot_volcano(all.resultsB4, "BETA", "P_VAL", nCpGs, main = "MODEL B4 : PM2.5 + European + cell")
+plot_volcano(all.resultsC4, "BETA", "P_VAL", nCpGs, main = "MODEL C4 : PM2.5 Abs + European + cell")
+plot_volcano(all.resultsD4, "BETA", "P_VAL", nCpGs, main = "MODEL D4 : PM10 + European + cell")
 dev.off()
 
 ################################################################################
@@ -2550,130 +2644,123 @@ par(mfrow= c(2,2))
 
 # A1 vs. A2
 VDdata<-NULL
-
 VDdata$CpGs<-unique(c(TopResA1$CpGs,TopResA2$CpGs))
-
 VDdata$A1<- VDdata$CpGs %in% TopResA1$CpGs
-
 VDdata$A2<- VDdata$CpGs %in% TopResA2$CpGs
-
 VDdata$CpGs<-NULL
-
 VDdata<-as.data.frame(VDdata)
-
 vennDiagram(vennCounts(VDdata),circle.col=c("red","green"))
-
 
 # B1 vs B2
 VDdata<-NULL
-
 VDdata$CpGs<-unique(c(TopResB1$CpGs,TopResB2$CpGs))
-
 VDdata$B1<- VDdata$CpGs %in% TopResB1$CpGs
-
 VDdata$B2<- VDdata$CpGs %in% TopResB2$CpGs
-
 VDdata$CpGs<-NULL
-
 VDdata<-as.data.frame(VDdata)
-
 vennDiagram(vennCounts(VDdata),circle.col=c("red","green"))
 
 # C1 vs C2
 VDdata<-NULL
-
 VDdata$CpGs<-unique(c(TopResC1$CpGs,TopResC2$CpGs))
-
 VDdata$C1<- VDdata$CpGs %in% TopResC1$CpGs
-
 VDdata$C2<- VDdata$CpGs %in% TopResC2$CpGs
-
 VDdata$CpGs<-NULL
-
 VDdata<-as.data.frame(VDdata)
-
 vennDiagram(vennCounts(VDdata),circle.col=c("red","green"))
 
 #D1 vs D2
 VDdata<-NULL
-
 VDdata$CpGs<-unique(c(TopResD1$CpGs,TopResD2$CpGs))
-
 VDdata$D1<- VDdata$CpGs %in% TopResD1$CpGs
-
 VDdata$D2<- VDdata$CpGs %in% TopResD2$CpGs
-
 VDdata$CpGs<-NULL
-
 VDdata<-as.data.frame(VDdata)
-
 vennDiagram(vennCounts(VDdata),circle.col=c("red","green"))
 dev.off() 
 
-png("Sensitivity_Venndiagrams.png")
+png("Sensitivity_Venndiagrams_S.png")
 par(mfrow= c(2,2))
 # A2 vs. A3
 VDdata<-NULL
-
 VDdata$CpGs<-unique(c(TopResA2$CpGs,TopResA3$CpGs))
-
 VDdata$A2<- VDdata$CpGs %in% TopResA2$CpGs
-
 VDdata$A3<- VDdata$CpGs %in% TopResA3$CpGs
-
 VDdata$CpGs<-NULL
-
 VDdata<-as.data.frame(VDdata)
-
 vennDiagram(vennCounts(VDdata),circle.col=c("red","green"))
 
 # B2 vs B3
 VDdata<-NULL
-
 VDdata$CpGs<-unique(c(TopResB2$CpGs,TopResB3$CpGs))
-
 VDdata$B2<- VDdata$CpGs %in% TopResB2$CpGs
-
 VDdata$B3<- VDdata$CpGs %in% TopResB3$CpGs
-
 VDdata$CpGs<-NULL
-
 VDdata<-as.data.frame(VDdata)
-
 vennDiagram(vennCounts(VDdata),circle.col=c("red","green"))
+
+# C2 vs C3
+VDdata<-NULL
+VDdata$CpGs<-unique(c(TopResC2$CpGs,TopResC3$CpGs))
+VDdata$C2<- VDdata$CpGs %in% TopResC2$CpGs
+VDdata$C3<- VDdata$CpGs %in% TopResC3$CpGs
+VDdata$CpGs<-NULL
+VDdata<-as.data.frame(VDdata)
+vennDiagram(vennCounts(VDdata),circle.col=c("red","green"))
+
+# D2 vs D3
+VDdata<-NULL
+VDdata$CpGs<-unique(c(TopResD2$CpGs,TopResD3$CpGs))
+VDdata$D2<- VDdata$CpGs %in% TopResD2$CpGs
+VDdata$D3<- VDdata$CpGs %in% TopResD3$CpGs
+VDdata$CpGs<-NULL
+VDdata<-as.data.frame(VDdata)
+vennDiagram(vennCounts(VDdata),circle.col=c("red","green"))
+
+dev.off() 
+
+png("Sensitivity_Venndiagrams_E.png")
+par(mfrow= c(2,2))
 
 # A2 vs. A4
 VDdata<-NULL
-
 VDdata$CpGs<-unique(c(TopResA2$CpGs,TopResA4$CpGs))
-
 VDdata$A2<- VDdata$CpGs %in% TopResA2$CpGs
-
 VDdata$A4<- VDdata$CpGs %in% TopResA4$CpGs
-
 VDdata$CpGs<-NULL
-
 VDdata<-as.data.frame(VDdata)
-
 vennDiagram(vennCounts(VDdata),circle.col=c("red","green"))
 
 
 # B2 vs B4
 VDdata<-NULL
-
 VDdata$CpGs<-unique(c(TopResB2$CpGs,TopResB4$CpGs))
-
 VDdata$B2<- VDdata$CpGs %in% TopResB2$CpGs
-
 VDdata$B4<- VDdata$CpGs %in% TopResB4$CpGs
-
 VDdata$CpGs<-NULL
-
 VDdata<-as.data.frame(VDdata)
-
 vennDiagram(vennCounts(VDdata),circle.col=c("red","green"))
 dev.off()  
 
+# C2 vs C4
+VDdata<-NULL
+VDdata$CpGs<-unique(c(TopResC2$CpGs,TopResC4$CpGs))
+VDdata$C2<- VDdata$CpGs %in% TopResC2$CpGs
+VDdata$C4<- VDdata$CpGs %in% TopResC4$CpGs
+VDdata$CpGs<-NULL
+VDdata<-as.data.frame(VDdata)
+vennDiagram(vennCounts(VDdata),circle.col=c("red","green"))
+dev.off()  
+
+# D2 vs D4
+VDdata<-NULL
+VDdata$CpGs<-unique(c(TopResD2$CpGs,TopResD4$CpGs))
+VDdata$D2<- VDdata$CpGs %in% TopResD2$CpGs
+VDdata$D4<- VDdata$CpGs %in% TopResD4$CpGs
+VDdata$CpGs<-NULL
+VDdata<-as.data.frame(VDdata)
+vennDiagram(vennCounts(VDdata),circle.col=c("red","green"))
+dev.off()  
 
 # X1
 VDdata<-NULL
