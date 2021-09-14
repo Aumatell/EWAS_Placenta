@@ -2593,13 +2593,15 @@ write.table(TopResD4, "PACE_EPIC_ModelD4_15-08_TopResults.txt",na="NA")
 # Volcano plots
 
 Hipo_hyper<-NULL
-Tops<-c(all.resultsA1, all.resultsA2,all.resultsA3,all.resultsA4,all.resultsB1,all.resultsB2,all.resultsB3,all.resultsB4,all.resultsC1,all.resultsC2,all.resultsC3,all.resultsC4,all.resultsD1,all.resultsD2,all.resultsD3,all.resultsD4)
-For (i in 1:16){
-  DA<-Tops[i]
-  Hipo_hyper$Hipo[i]<-len(DA[,2][DA[,2] < as.numeric(-0.01)])
-  Hipo_hyper$Hyper[i]<-len(DA[,2][DA[,2]>0.01])
+Tops<-list(all.resultsA1, all.resultsA2,all.resultsA3,all.resultsA4,all.resultsB1,all.resultsB2,all.resultsB3,all.resultsB4,all.resultsC1,all.resultsC2,all.resultsC3,all.resultsC4,all.resultsD1,all.resultsD2,all.resultsD3,all.resultsD4)
+count=1
+for (i in Tops){
+  Hipo_hyper$Hipo[count]<-length(i[,2][i[,2] < as.numeric(-0.01)])
+  Hipo_hyper$Hyper[count]<-length(i[,2][i[,2]>0.01])
+  count=count+1
 }
 Hipo_hyper
+
 
 png("VolcanoX1.png")
 par(mfrow= c(2,2))
