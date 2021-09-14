@@ -2203,6 +2203,63 @@ vennDiagram(vennCounts(VDdata),circle.col=c("red","green","blue","yellow"))
 dev.off()  
 
 
+png("cross_X2_Venndiagrams.png")
+par(mfrow= c(2,3))
+# A2 vs. B2
+VDdata<-NULL
+VDdata$CpGs<-unique(c(TopResA2$CpGs,TopResB2$CpGs))
+VDdata$A2<- VDdata$CpGs %in% TopResA2$CpGs
+VDdata$B2<- VDdata$CpGs %in% TopResB2$CpGs
+VDdata$CpGs<-NULL
+VDdata<-as.data.frame(VDdata)
+vennDiagram(vennCounts(VDdata),circle.col=c("red","green"))
+
+# A2 vs. C2
+VDdata<-NULL
+VDdata$CpGs<-unique(c(TopResA2$CpGs,TopResC2$CpGs))
+VDdata$A2<- VDdata$CpGs %in% TopResA2$CpGs
+VDdata$C2<- VDdata$CpGs %in% TopResC2$CpGs
+VDdata$CpGs<-NULL
+VDdata<-as.data.frame(VDdata)
+vennDiagram(vennCounts(VDdata),circle.col=c("red","green"))
+
+# A2 vs. D2
+VDdata<-NULL
+VDdata$CpGs<-unique(c(TopResA2$CpGs,TopResD2$CpGs))
+VDdata$A2<- VDdata$CpGs %in% TopResA2$CpGs
+VDdata$D2<- VDdata$CpGs %in% TopResD2$CpGs
+VDdata$CpGs<-NULL
+VDdata<-as.data.frame(VDdata)
+vennDiagram(vennCounts(VDdata),circle.col=c("red","green"))
+
+# B2 vs C2
+VDdata<-NULL
+VDdata$CpGs<-unique(c(TopResB2$CpGs,TopResC2$CpGs))
+VDdata$B2<- VDdata$CpGs %in% TopResB2$CpGs
+VDdata$C2<- VDdata$CpGs %in% TopResC2$CpGs
+VDdata$CpGs<-NULL
+VDdata<-as.data.frame(VDdata)
+vennDiagram(vennCounts(VDdata),circle.col=c("red","green"))
+
+# B2 vs D2
+VDdata<-NULL
+VDdata$CpGs<-unique(c(TopResB2$CpGs,TopResD2$CpGs))
+VDdata$B2<- VDdata$CpGs %in% TopResB2$CpGs
+VDdata$D2<- VDdata$CpGs %in% TopResD2$CpGs
+VDdata$CpGs<-NULL
+VDdata<-as.data.frame(VDdata)
+vennDiagram(vennCounts(VDdata),circle.col=c("red","green"))
+
+# C2 vs D2
+VDdata<-NULL
+VDdata$CpGs<-unique(c(TopResC2$CpGs,TopResD2$CpGs))
+VDdata$C2<- VDdata$CpGs %in% TopResC2$CpGs
+VDdata$D2<- VDdata$CpGs %in% TopResD2$CpGs
+VDdata$CpGs<-NULL
+VDdata<-as.data.frame(VDdata)
+vennDiagram(vennCounts(VDdata),circle.col=c("red","green"))
+dev.off() 
+
 #################################################################################
 # Functional enrichment analisys of placenta
 # from https://github.com/isglobal-brge/EASIER/blob/main/module_scripts/Enrichment.R#L59
